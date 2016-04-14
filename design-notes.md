@@ -67,9 +67,10 @@ If the gallery was generated from a manifest then we only have one set of manife
 
 ## Configuration
 
-max-images: 20 (gallery should top adding images after this number)
-wall-image-service: ... (iiif image api endpoint OSD uses as a tilesource for the background)
-label-image: ... (endpoint to generate an image from iiif resource metadata)
+* max-images: 20 (gallery should top adding images after this number)
+* wall-image-service: ... (iiif image api endpoint OSD uses as a tilesource for the background)
+* label-image: ... (endpoint to generate an image from iiif resource metadata)
+* etc
 
 ## Hosting
 

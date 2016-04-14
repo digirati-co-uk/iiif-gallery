@@ -42,9 +42,9 @@ https://thepracticalartworld.com/2014/06/18/examples-of-artwork-labels/
 
 We could do something with OSD overlays but I want the label to look photorealistic, I think we want to render it on the server. I want it to look like it's made from card. It doesn't need to be a multi-zoom level image - it can be the absolutely simplest IIIF tilesource which is a fixed sizes array of length 1 (see https://tomcrane.github.io/scratch/osd/iiif-sizes.html, "1 size only"). The server side component has to generate and return two different resources:
 
-a. http://gallery.org/wall-label/`url-encoded-iiif-resource-URI`/info.json
+a. http://gallery.org/wall-label/-url-encoded-iiif-resource-URI-/info.json
 
-b. http://gallery.org/wall-label/`url-encoded-iiif-resource-URI`/full/1000,/0/default.jpg
+b. http://gallery.org/wall-label/-url-encoded-iiif-resource-URI-/full/1000,/0/default.jpg
 
 ...where the info.json looks something like this:
 

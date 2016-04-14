@@ -40,7 +40,7 @@ If the gallery is initialised with a iiif:Manifest, it should render the first 2
 
 https://thepracticalartworld.com/2014/06/18/examples-of-artwork-labels/
 
-We could do something with OSD overlays but I want the label to look photorealistic, I think we want to render it on the server. It doesn't need to be a multi-zoom level image - it can be the absolutely simplest IIIF tilesource which is a fixed sizes array of length 1 (see https://tomcrane.github.io/scratch/osd/iiif-sizes.html, "1 size only"). The server side component has to generate and return two diffrent resources:
+We could do something with OSD overlays but I want the label to look photorealistic, I think we want to render it on the server. I want it to look like it's made from card. It doesn't need to be a multi-zoom level image - it can be the absolutely simplest IIIF tilesource which is a fixed sizes array of length 1 (see https://tomcrane.github.io/scratch/osd/iiif-sizes.html, "1 size only"). The server side component has to generate and return two different resources:
 
 a) http://gallery.org/wall-label/<url-encoded-iiif-resource-URI>/info.json
 b) http://gallery.org/wall-label/<url-encoded-iiif-resource-URI>/full/1000,/0/default.jpg
@@ -64,7 +64,6 @@ b) http://gallery.org/wall-label/<url-encoded-iiif-resource-URI>/full/1000,/0/de
 (it doesn't have to be 1000 x 800 - whatever works). If the iiif-resource is a manifest, the server uses the metadata labels - maybe with some parsing and truncation rules becasue some descriptions could be way too long, it needs to fit on a sensible size label. If the manifest has an "attribution" notice, that must be shown. The server dynamically generates the single image and will return it in response to b) above. It must use some variant of Helvetica as the typeface! 
 
 If the gallery was generated from a manifest then we only have one set of manifest metadata, so just add a label next to the first image. A later enhancement can create a label from canvas-level metadata.
-
 
 ## Configuration
 

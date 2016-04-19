@@ -1,0 +1,28 @@
+{
+  "name": "iiif-gallery",
+  "version": "1.0.0",
+  "description": "Render a IIIF collection as a gallery wall",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/digirati-co-uk/iiif-gallery.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/digirati-co-uk/iiif-gallery/issues"
+  },
+  "homepage": "https://github.com/digirati-co-uk/iiif-gallery",
+  "devDependencies": {
+    "babel-core": "^6.7.6",
+    "babel-loader": "^6.2.4",
+    "babel-polyfill": "^6.7.4",
+    "babel-preset-es2015": "^6.6.0",
+    "openseadragon": "^2.1.0",
+    "webpack": "^1.13.0",
+    "webpack-dev-server": "^1.14.1"
+  }
+}

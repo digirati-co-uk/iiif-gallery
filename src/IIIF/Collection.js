@@ -10,9 +10,7 @@ export default class Collection extends IIIFBase {
     // Get manifest.
     this.manifests = mapArrayOf(Manifest, this.manifests);
     // Get images from manifest.
-    this.images = this.manifests.map(function(manifest) {
-      return manifest.getImageSource();
-    })
+    this.images = this.manifests.map(manifest => manifest.getImageSource());
   }
 
 }

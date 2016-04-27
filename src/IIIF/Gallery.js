@@ -3,53 +3,100 @@ import { Viewer } from 'OpenSeadragon';
 import { fetch } from './Util';
 import ImageQueue from './ImageQueue';
 
+
 /**
  * IIIF Gallery.
  */
 export default class Gallery extends Viewer {
 
-  constructor(gallery, opts) {
+  /**
+   * Gallery constructor
+   *
+   * Takes in an options array that is an extension of OSD.
+   * Can be used as OSD viewer without using any of the extensions.
+   *
+   * @param opts
+   */
+  constructor(opts) {
     super(opts);
-
+    // Default configuration.
     this.wallImageWidth = opts.wallImageWidth || 100;
     this.wallImageSpacing = opts.wallImageSpacing || 15;
     this.wallOffsetTop = opts.wallOffsetTop || 200;
     this.wallOffsetLeft = opts.wallOffsetLeft || this.wallImageWidth/2;
     this.resolveVideo = opts.resolveVideo || this.resolveVideo;
     this.resolveCollectionImages = opts.resolveCollectionImages || this.resolveCollectionImages;
+    this.backgroundWallImage = opts.backgroundWallImage || 'https://dlcs.io/iiif-img/4/4/f72a98a7_blank_gallery_wall.jpg/info.json';
+    this.backgroundWallWidth = opts.backgroundWallWidth || 1000;
+    let gallery = opts.gallery || null;
 
-    this.wallImages = [];
+    // Creates an image queue, with hooks into OSD specifics.
+    this.configureImageQueue();
 
-    this.queue = this.configureImageQueue();
-    this.queue.onFlushEnd = this.recalculateWall.bind(this);
+    // Default media types.
+    this.mediaTypes = {
+      'image': this.appendWallImage,
+      'html': this.appendWallHtml
+    };
 
-     this.backgroundWallImage = 'https://dlcs.io/iiif-img/4/4/f72a98a7_blank_gallery_wall.jpg/info.json';
-     this.backgroundWallWidth = 1000;
-
-    // Make wall (unable to do it after images).
-    this.recalculateWall();
-
-    // Fetch the gallery.
-    this.fetchGallery(gallery);
+    // Build a gallery from passed in information.
+    if (gallery) {
+      // If we have a string, assume the default URL of IIIF collection.
+      if (typeof gallery === 'string') {
+        gallery = IIIFCollectionResolver(gallery);
+      }
+      // We should now have a promise that will return an array of actions
+      // that we can pass to our queue (and flush to display them)
+      gallery.then((actions) => {
+        this.queue.pushAll(actions).flush()
+      });
+    }
   }
 
-  configureImageQueue() {
-    return new ImageQueue((meta, k) => {
-      switch (meta.type) {
-        case 'image':
-          this.appendWallImage(meta.image, k, k+100);
-          break;
+  /**
+   * Adds new media type.
+   *
+   * @param type string Used to identify type when passing an action.
+   * @param reducer function This will render the media onto the canvas (see appendWallImage + appendWallVideo)
+   */
+  addMediaType(type, reducer) {
+    this.mediaTypes[type] = reducer.bind(this)
+  }
 
-        case 'video':
-          this.appendWallVideo(meta.video, k, k+100);
-          break;
+  /**
+   * Configures image queue using our media types.
+   */
+  configureImageQueue() {
+    this.queue = new ImageQueue((meta, k) => {
+      if (this.mediaTypes[meta.type]) {
+        this.mediaTypes[meta.type].apply(this, [ meta.payload, k, k+100 ])
+      }
+      else {
+        throw Error("Unsupported media type");
       }
     });
+    // This is allows overlays to be re-rendered
+    this.queue.beforeFlushStart = () => {
+      this.clearOverlays();
+      this.overlaysContainer.innerHTML = "";
+    };
+    // This will auto stretch the wall to fit the content.
+    this.queue.onFlushEnd = this.recalculateWall.bind(this);
   }
 
-  appendWallVideo(video, key, index) {
+  /**
+   * HTML media type reducer.
+   *
+   * This will append an HTML element on the wall with the correct spacing.
+   *
+   * @param payload
+   * @param key
+   * @param index
+   * @returns {*|OpenSeadragon.Viewer}
+   */
+  appendWallHtml(payload, key, index) {
     return this.addOverlay({
-      element: video,
+      element: payload.element,
       location: new OpenSeadragon.Rect(
           this.wallOffsetLeft + (key*(this.wallImageWidth+this.wallImageSpacing)),
           this.wallOffsetTop,
@@ -60,35 +107,30 @@ export default class Gallery extends Viewer {
   }
 
   /**
-   * Fetches gallery from input URL.
-   * @param gallery
-   * @returns {Promise.<T>}
+   * Image media type reducer.
+   *
+   * Appends image to the wall, spaced correctly.
+   *
+   * @param image
+   * @param key
+   * @param index
+   * @param replace
+   * @returns {Promise}
    */
-  fetchGallery(gallery) {
-    return fetch(gallery).then((d) => {
-      // Map to collection.
-      return new Collection(d);
-    }).then((manifest) => {
-      // Add images to wall in order.
-      this.resolveCollectionImages(manifest).map((image, k) => {
-        this.queue.push({ type: 'image', image, manifest });
-      });
-      this.queue.flush();
+  appendWallImage({ image }, key, index, replace=false) {
+    return this.asyncAddTiledImage({
+      tileSource: image,
+      width: this.wallImageWidth,
+      replace,
+      index,
+      y: this.wallOffsetTop,
+      x: this.wallOffsetLeft + (key*(this.wallImageWidth+this.wallImageSpacing))
     });
   }
 
   /**
-   * Get array of image manifests from collection.
-   *
-   * @param collection
-   * @returns {*|HTMLCollection}
-   */
-  resolveCollectionImages(collection) {
-    return collection.images;
-  }
-
-  /**
    * addTiledImage wrapped in promise.
+   *
    * @returns {Promise}
    */
   asyncAddTiledImage(...args) {
@@ -105,27 +147,10 @@ export default class Gallery extends Viewer {
   }
 
   /**
-   * Appends image to the wall, spaced using key.
+   * Recalculates the walls width and adds tiles accordingly.
    *
-   * @todo add replacing mechanism for already existing images.
-   *
-   * @param image
-   * @param key
-   * @param index
-   * @param replace
-   * @returns {Promise}
+   * @param images
    */
-  appendWallImage(image, key, index, replace=false) {
-    return this.asyncAddTiledImage({
-      tileSource: image,
-      width: this.wallImageWidth,
-      replace,
-      index,
-      y: this.wallOffsetTop,
-      x: this.wallOffsetLeft + (key*(this.wallImageWidth+this.wallImageSpacing))
-    });
-  }
-
   recalculateWall(images) {
     let image_count = images? images.length : 0;
     let wallWidth = this.wallOffsetLeft + ((image_count+1)* (this.wallImageWidth+this.wallImageSpacing));
@@ -136,7 +161,7 @@ export default class Gallery extends Viewer {
 
 
   /**
-   * Unused due to layering issues.
+   * Creates segment X of the wall.
    *
    * @param num
    * @param offset
@@ -152,4 +177,22 @@ export default class Gallery extends Viewer {
       });
     }
   }
+}
+
+/**
+ * Default resolver for IIIF Collection.
+ *
+ * @param url
+ * @returns {Promise.<T>}
+ */
+export function IIIFCollectionResolver(url) {
+  return fetch(url).then((d) => {
+    // Map to collection.
+    return new Collection(d);
+  }).then((manifest) => {
+    // Add images to wall in order.
+    return manifest.images.map((image, key) => {
+      return { type: 'image', payload: { image, manifest, key }};
+    });
+  });
 }

@@ -25,8 +25,10 @@ export default class ImageQueue {
   }
 
   onFlushEnd(images) { }
+  beforeFlushStart(images) { }
 
   flush() {
+    this.beforeFlushStart(this._images);
     this._images.forEach(this._flush);
     this.onFlushEnd(this._images);
   }

@@ -9,6 +9,10 @@ export default class ImageQueue {
     }
   }
 
+  sizeOf() {
+    return this._images.length;
+  }
+
   push(image) {
     this._images.push(image);
     return this;
@@ -16,13 +20,15 @@ export default class ImageQueue {
 
   pushAll(images) {
     if (typeof images === 'string') images = [images];
-    this._images.merge(images);
+    this._images = [].concat(this._images, images);
     return this;
   }
 
+  onFlushEnd(images) { }
+
   flush() {
-    console.log('flushing...', this._images);
-    this._images.forEach(this._flush)
+    this._images.forEach(this._flush);
+    this.onFlushEnd(this._images);
   }
 
   pop() {

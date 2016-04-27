@@ -16,18 +16,18 @@ export default class Gallery extends Viewer {
     this.wallOffsetTop = opts.wallOffsetTop || 200;
     this.wallOffsetLeft = opts.wallOffsetLeft || this.wallImageWidth/2;
     this.resolveVideo = opts.resolveVideo || this.resolveVideo;
-    this.resolveManifestImages = opts.resolveManifestImages || this.resolveManifestImages;
+    this.resolveCollectionImages = opts.resolveCollectionImages || this.resolveCollectionImages;
 
     this.wallImages = [];
 
     this.queue = this.configureImageQueue();
+    this.queue.onFlushEnd = this.recalculateWall.bind(this);
 
-    // this.backgroundWallImage = 'https://dlcs.io/iiif-img/4/4/f72a98a7_blank_gallery_wall.jpg/info.json';
-    // this.backgroundWallWidth = 1000;
-    // this.backgroundWallImages = [];
+     this.backgroundWallImage = 'https://dlcs.io/iiif-img/4/4/f72a98a7_blank_gallery_wall.jpg/info.json';
+     this.backgroundWallWidth = 1000;
 
     // Make wall (unable to do it after images).
-    this.makeWall(5, -250);
+    this.recalculateWall();
 
     // Fetch the gallery.
     this.fetchGallery(gallery);
@@ -37,45 +37,27 @@ export default class Gallery extends Viewer {
     return new ImageQueue((meta, k) => {
       switch (meta.type) {
         case 'image':
-          this.appendWallImage(meta.image, k);
+          this.appendWallImage(meta.image, k, k+100);
           break;
 
         case 'video':
-          this.appendWallVideo(meta.video, k);
+          this.appendWallVideo(meta.video, k, k+100);
           break;
       }
     });
   }
 
-  appendWallVideo(video, k) {
+  appendWallVideo(video, key, index) {
     return this.addOverlay({
       element: video,
       location: new OpenSeadragon.Rect(
-          this.wallOffsetLeft + (k*(this.wallImageWidth+this.wallImageSpacing)),
+          this.wallOffsetLeft + (key*(this.wallImageWidth+this.wallImageSpacing)),
           this.wallOffsetTop,
           this.wallImageWidth,
           this.wallImageWidth
       )
     });
   }
-
-  //resolveVideo(/*Manifest*/ manifest) {
-  //  console.log(manifest);
-  //}
-
-  //playVideo() {
-  //  var elt = document.querySelector("#video");
-  //  // (1): location: new OpenSeadragon.Rect(140, 150, 280, 200)
-  //  // (2): location: new OpenSeadragon.Rect(520, 150, 280, 200)
-  //  // Delta: 380
-  //  // Width: 280
-  //  // Gap: 100
-  //  // Spacing: 50?
-  //  this.addOverlay({
-  //    element: elt,
-  //    location: new OpenSeadragon.Rect(520, 150, this.wallImageWidth, this.wallImageWidth)
-  //  });
-  //}
 
   /**
    * Fetches gallery from input URL.
@@ -88,28 +70,34 @@ export default class Gallery extends Viewer {
       return new Collection(d);
     }).then((manifest) => {
       // Add images to wall in order.
-      this.resolveManifestImages(manifest).map((image, k) => {
-        if (k === 2) this.queue.push({ type: 'video', video: document.querySelector("#video") }).flush();
-          this.queue.push({ type: 'image', image, manifest });
+      this.resolveCollectionImages(manifest).map((image, k) => {
+        this.queue.push({ type: 'image', image, manifest });
       });
       this.queue.flush();
     });
   }
 
-  resolveManifestImages(manifest) {
-    return manifest.images;
+  /**
+   * Get array of image manifests from collection.
+   *
+   * @param collection
+   * @returns {*|HTMLCollection}
+   */
+  resolveCollectionImages(collection) {
+    return collection.images;
   }
 
   /**
    * addTiledImage wrapped in promise.
-   * @param opts
    * @returns {Promise}
    */
-  asyncAddTiledImage(opts) {
+  asyncAddTiledImage(...args) {
     return new Promise((resolve, err) => {
-      opts.success = resolve;
+      if (args[0]) {
+        args[0].success = resolve;
+      }
       try {
-        this.addTiledImage(opts);
+        this.addTiledImage.apply(this, args);
       } catch (e) {
         err(e)
       }
@@ -120,31 +108,46 @@ export default class Gallery extends Viewer {
    * Appends image to the wall, spaced using key.
    *
    * @todo add replacing mechanism for already existing images.
+   *
    * @param image
-   * @param k
+   * @param key
+   * @param index
+   * @param replace
    * @returns {Promise}
    */
-  appendWallImage(image, k) {
+  appendWallImage(image, key, index, replace=false) {
     return this.asyncAddTiledImage({
       tileSource: image,
       width: this.wallImageWidth,
+      replace,
+      index,
       y: this.wallOffsetTop,
-      x: this.wallOffsetLeft + (k*(this.wallImageWidth+this.wallImageSpacing))
+      x: this.wallOffsetLeft + (key*(this.wallImageWidth+this.wallImageSpacing))
     });
+  }
+
+  recalculateWall(images) {
+    let image_count = images? images.length : 0;
+    let wallWidth = this.wallOffsetLeft + ((image_count+1)* (this.wallImageWidth+this.wallImageSpacing));
+    let wallPanelCount = Math.ceil(wallWidth / this.backgroundWallWidth);
+
+    this.makeWall(wallPanelCount, -this.wallOffsetTop);
   }
 
 
   /**
    * Unused due to layering issues.
+   *
    * @param num
    * @param offset
    */
   makeWall(num, offset = 0) {
     while (num-- > 0) {
       this.addTiledImage({
-        tileSource: 'https://dlcs.io/iiif-img/4/4/f72a98a7_blank_gallery_wall.jpg/info.json',
-        width: 1000,
-        x: num*1000+offset,
+        tileSource: this.backgroundWallImage,
+        width: this.backgroundWallWidth,
+        index: num,
+        x: num*this.backgroundWallWidth+offset,
         y: 0
       });
     }

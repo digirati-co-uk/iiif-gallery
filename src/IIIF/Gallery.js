@@ -1,8 +1,19 @@
 import Collection from './Collection';
 import { Viewer } from 'OpenSeadragon';
+import $ from 'OpenSeadragon';
 import { fetch } from './Util';
 import ImageQueue from './ImageQueue';
+import Velocity from 'velocity-animate';
 
+const throttle = function(fn, delay) {
+  return function() {
+    var now = (new Date).getTime()
+    if (!fn.lastExecuted || fn.lastExecuted + delay < now) {
+      fn.lastExecuted = now
+      fn.apply(fn, arguments)
+    }
+  }
+}
 
 /**
  * IIIF Gallery.
@@ -28,7 +39,7 @@ export default class Gallery extends Viewer {
     this.resolveCollectionImages = opts.resolveCollectionImages || this.resolveCollectionImages;
     this.backgroundWallImage = opts.backgroundWallImage || 'https://dlcs.io/iiif-img/4/4/f72a98a7_blank_gallery_wall.jpg/info.json';
     this.backgroundWallWidth = opts.backgroundWallWidth || 1000;
-    let gallery = opts.gallery || null;
+    let collection = opts.collection || null;
 
     // Creates an image queue, with hooks into OSD specifics.
     this.configureImageQueue();
@@ -40,17 +51,43 @@ export default class Gallery extends Viewer {
     };
 
     // Build a gallery from passed in information.
-    if (gallery) {
-      // If we have a string, assume the default URL of IIIF collection.
-      if (typeof gallery === 'string') {
-        gallery = IIIFCollectionResolver(gallery);
-      }
-      // We should now have a promise that will return an array of actions
-      // that we can pass to our queue (and flush to display them)
-      gallery.then((actions) => {
-        this.queue.pushAll(actions).flush()
-      });
+    if (collection) {
+      this.resolve(collection);
     }
+
+
+  }
+
+  /**
+   * Public access to push images onto the queue.
+   *
+   * @param images
+   * @param flush
+   */
+  push(images, flush = true) {
+    // make sure we have an array.
+    images = ($.isArray(images)) ? images : [images];
+    // Add them to the queue.
+    this.queue.pushAll(images);
+    if (flush) {
+      this.queue.flush();
+    }
+  }
+
+  /**
+   * Renders a
+   * @param collection string|Promise
+   */
+  resolve(collection) {
+    // If we have a string, assume the default URL of IIIF collection.
+    if (typeof collection === 'string') {
+      collection = IIIFCollectionResolver(collection);
+    }
+    // We should now have a promise that will return an array of actions
+    // that we can pass to our queue (and flush to display them)
+    collection.then((actions) => {
+      this.push(actions)
+    });
   }
 
   /**
@@ -156,7 +193,33 @@ export default class Gallery extends Viewer {
     let wallWidth = this.wallOffsetLeft + ((image_count+1)* (this.wallImageWidth+this.wallImageSpacing));
     let wallPanelCount = Math.ceil(wallWidth / this.backgroundWallWidth);
 
+
+    let makeFloor = () => {
+      let floor = document.createElement('div');
+      floor.setAttribute('id', 'floor');
+      floor.setAttribute('class', 'floor');
+
+      this.addHandler('pan', throttle((e) => {
+        //console.log(e);
+        console.log((e.center.x+850) / (wallWidth+1200) *100);
+        Velocity(floor, { transformOriginY: 'top', transformOriginX: ( (e.center.x+850) / (wallWidth+1500) *100)+'%' }, {duration: 0});
+      }, 15))
+      //this.addHandler('zoom', throttle((e) => {
+      //  var zoom = this.viewport.getZoom(true);
+      //  Velocity(floor, { backgroundSize: 10+'%' }, {duration: 20});
+      //}, 30))
+      return floor;
+    };
     this.makeWall(wallPanelCount, -this.wallOffsetTop);
+    this.addOverlay({
+      element: makeFloor(),
+      location: new OpenSeadragon.Rect(
+          -600,
+          window.innerHeight-250,
+          wallWidth+1200,
+          200
+      )
+    });
   }
 
 
@@ -189,10 +252,10 @@ export function IIIFCollectionResolver(url) {
   return fetch(url).then((d) => {
     // Map to collection.
     return new Collection(d);
-  }).then((manifest) => {
+  }).then((collection) => {
     // Add images to wall in order.
-    return manifest.images.map((image, key) => {
-      return { type: 'image', payload: { image, manifest, key }};
+    return collection.images.map((image, key) => {
+      return { type: 'image', payload: { image, collection, key }};
     });
   });
 }

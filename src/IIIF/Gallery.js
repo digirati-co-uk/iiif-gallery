@@ -39,6 +39,8 @@ export default class Gallery extends Viewer {
     this.resolveCollectionImages = opts.resolveCollectionImages || this.resolveCollectionImages;
     this.backgroundWallImage = opts.backgroundWallImage || 'https://dlcs.io/iiif-img/4/4/f72a98a7_blank_gallery_wall.jpg/info.json';
     this.backgroundWallWidth = opts.backgroundWallWidth || 1000;
+    this.show3DFloor = opts.show3DFloor || false;
+    this._3dfloor = [];
     let collection = opts.collection || null;
 
     // Creates an image queue, with hooks into OSD specifics.
@@ -54,6 +56,8 @@ export default class Gallery extends Viewer {
     if (collection) {
       this.resolve(collection);
     }
+
+    this.recalculateWall([]);
 
 
   }
@@ -183,6 +187,43 @@ export default class Gallery extends Viewer {
     });
   }
 
+  create3DFloorObject(wallWidth) {
+    if (this._3dfloor[wallWidth]) return this._3dfloor[wallWidth];
+    let floor = document.createElement('div');
+    floor.setAttribute('id', 'floor');
+    floor.setAttribute('class', 'floor');
+
+    let calculatePan = throttle((x) => {
+      Velocity(floor, { transformOriginY: 'top', transformOriginX: ((x) / (wallWidth) *100)+'%' }, {duration: 0});
+    }, (1000/60));
+    let calculateZoom = throttle((e) => {
+      if (this.viewport.getZoom(true) > 0.0013) {
+        Velocity(floor, { opacity: 0 }, {duration: 0});
+      }
+      else {
+        Velocity(floor, { opacity: 1 }, {duration: 0});
+      }
+      calculatePan(this.viewport.getCenter().x);
+    }, (1000/60));
+
+    this.addHandler('pan', (e) => calculatePan(e.center.x));
+    this.addHandler('add-overlay', (e) => calculatePan(this.viewport.getCenter().x));
+    this.addHandler('zoom', calculateZoom);
+    return this._3dfloor[wallWidth] = floor;
+  }
+
+  create3DFloor(wallWidth) {
+    this.addOverlay({
+      element: this.create3DFloorObject(wallWidth),
+      location: new OpenSeadragon.Rect(
+          0,
+          window.innerHeight-250,
+          wallWidth-80,
+          250
+      )
+    });
+  }
+
   /**
    * Recalculates the walls width and adds tiles accordingly.
    *
@@ -193,33 +234,10 @@ export default class Gallery extends Viewer {
     let wallWidth = this.wallOffsetLeft + ((image_count+1)* (this.wallImageWidth+this.wallImageSpacing));
     let wallPanelCount = Math.ceil(wallWidth / this.backgroundWallWidth);
 
-
-    let makeFloor = () => {
-      let floor = document.createElement('div');
-      floor.setAttribute('id', 'floor');
-      floor.setAttribute('class', 'floor');
-
-      this.addHandler('pan', throttle((e) => {
-        //console.log(e);
-        console.log((e.center.x+850) / (wallWidth+1200) *100);
-        Velocity(floor, { transformOriginY: 'top', transformOriginX: ( (e.center.x+850) / (wallWidth+1500) *100)+'%' }, {duration: 0});
-      }, 15))
-      //this.addHandler('zoom', throttle((e) => {
-      //  var zoom = this.viewport.getZoom(true);
-      //  Velocity(floor, { backgroundSize: 10+'%' }, {duration: 20});
-      //}, 30))
-      return floor;
-    };
     this.makeWall(wallPanelCount, -this.wallOffsetTop);
-    this.addOverlay({
-      element: makeFloor(),
-      location: new OpenSeadragon.Rect(
-          -600,
-          window.innerHeight-250,
-          wallWidth+1200,
-          200
-      )
-    });
+    if (this.show3DFloor) {
+      this.create3DFloor(wallWidth);
+    }
   }
 
 
@@ -235,7 +253,7 @@ export default class Gallery extends Viewer {
         tileSource: this.backgroundWallImage,
         width: this.backgroundWallWidth,
         index: num,
-        x: num*this.backgroundWallWidth+offset,
+        x: num*this.backgroundWallWidth,
         y: 0
       });
     }

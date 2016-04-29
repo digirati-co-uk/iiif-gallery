@@ -21,7 +21,8 @@ import Velocity from 'velocity-animate';
     minZoomLevel: 0.0007,
     wallImageWidth: 280,
     wallImageSpacing: 100,
-    wallOffsetTop: 150
+    wallOffsetTop: 150,
+    show3DFloor: true
   });
   console.log(gallery);
 

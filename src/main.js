@@ -8,6 +8,8 @@ let gallery = new Gallery({
   id: "player",
   collection: 'http://wellcomelibrary.org/service/collections/genres/Wet%20collodion%20negatives/',
   visibilityRatio: 1,
+  homeFillsViewer: true,
+  constrainDuringPan: true,
   animationTime: 0.3,
   minZoomLevel: 0.0007,
   wallImageWidth: 280,
@@ -15,23 +17,23 @@ let gallery = new Gallery({
   wallOffsetTop: 150,
   show3DFloor: true
 });
-
-gallery.addMediaType('video_url', function (payload, key, index) {
-  let container = document.createElement('div'),
-      video = document.createElement('video');
-
-  video.setAttribute('src', payload.url);
-  video.setAttribute('controls', false);
-
-  container.appendChild(video);
-  container.setAttribute('class', 'video');
-
-  this.appendWallHtml({element: container}, key, index);
-});
-
-gallery.queue.pushAll([
-  {type: 'video_url', payload: {url: 'http://upload.wikimedia.org/wikipedia/commons/7/79/Big_Buck_Bunny_small.ogv'}},
-  {type: 'video_url', payload: {url: 'http://upload.wikimedia.org/wikipedia/commons/7/79/Big_Buck_Bunny_small.ogv'}},
-]).flush();
-
+//
+//gallery.addMediaType('video_url', function (payload, key, index) {
+//  let container = document.createElement('div'),
+//      video = document.createElement('video');
+//
+//  video.setAttribute('src', payload.url);
+//  video.setAttribute('controls', false);
+//
+//  container.appendChild(video);
+//  container.setAttribute('class', 'video');
+//
+//  this.appendWallHtml({element: container}, key, index);
+//});
+//
+//gallery.queue.pushAll([
+//  {type: 'video_url', payload: {url: 'http://upload.wikimedia.org/wikipedia/commons/7/79/Big_Buck_Bunny_small.ogv'}},
+//  {type: 'video_url', payload: {url: 'http://upload.wikimedia.org/wikipedia/commons/7/79/Big_Buck_Bunny_small.ogv'}},
+//]).flush();
+//
 

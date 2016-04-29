@@ -15,6 +15,17 @@ export function fetch(url, json=true) {
   });
 }
 
+
+export function throttle(fn, delay) {
+  return function() {
+    var now = (new Date).getTime();
+    if (!fn.lastExecuted || fn.lastExecuted + delay < now) {
+      fn.lastExecuted = now;
+      fn.apply(fn, arguments);
+    }
+  }
+}
+
 /**
  * Maps array of objects to base object (_)
  *

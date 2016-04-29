@@ -1,19 +1,10 @@
 import Collection from './Collection';
 import { Viewer } from 'OpenSeadragon';
 import $ from 'OpenSeadragon';
-import { fetch } from './Util';
+import { fetch, throttle } from './Util';
 import ImageQueue from './ImageQueue';
 import Velocity from 'velocity-animate';
 
-const throttle = function(fn, delay) {
-  return function() {
-    var now = (new Date).getTime()
-    if (!fn.lastExecuted || fn.lastExecuted + delay < now) {
-      fn.lastExecuted = now
-      fn.apply(fn, arguments)
-    }
-  }
-}
 
 /**
  * IIIF Gallery.
@@ -201,24 +192,29 @@ export default class Gallery extends Viewer {
     floor.setAttribute('class', 'floor');
 
     let calculatePan = throttle((x) => {
-      Velocity(floor, { transformOriginY: 'top', transformOriginX: ((x) / (wallWidth) *100)+'%' }, {duration: 8});
+      // Calculate the perspective origin to be center of the screen (x) as a pecentage of wall width.
+      Velocity(floor, { transformOriginY: 'top', transformOriginX: ((x) / (wallWidth) *100)+'%' }, {duration: 0});
     }, (1000/60));
 
     let calculateZoom = throttle((e) => {
-      //if (this.viewport.getZoom(true) > 0.0013) {
-      //  Velocity(floor, { opacity: 0 }, {duration: 0});
-      //}
-      //else {
-      //  Velocity(floor, { opacity: 1 }, {duration: 0});
-      //}
+      // Hide and show at further zoom levels (perf).
       Velocity(floor, {
         opacity: this.viewport.getZoom(true) > 0.0013 ? 0 : 1
       }, {duration: 0});
+      // Recalculate width.
       calculatePan(this.viewport.getCenter().x);
     }, (1000/60));
 
     this.addHandler('pan', (e) => calculatePan(e.center.x));
-    this.addHandler('add-overlay', (e) => calculatePan(this.viewport.getCenter().x));
+    this.addHandler('viewport-change', (e) => calculatePan(this.viewport.getCenter().x));
+    this.addHandler('add-overlay', (e) => {
+      if (floor.offsetWidth/floor.offsetHeight > 1) {
+        // Set background size ratio.
+        Velocity(floor, { backgroundSize: 30/(wallWidth/950)+'%' }, { duration: 0 });
+        // Recalculate floor width.
+        calculatePan(this.viewport.getCenter().x)
+      }
+    });
     this.addHandler('zoom', calculateZoom);
     return this._3dfloor[wallWidth] = floor;
   }
@@ -235,8 +231,8 @@ export default class Gallery extends Viewer {
       location: new OpenSeadragon.Rect(
           0,
           window.innerHeight-height,
-          wallWidth-80,
-          height
+          wallWidth,
+          200
       )
     });
   }
@@ -248,7 +244,7 @@ export default class Gallery extends Viewer {
    */
   recalculateWall(images) {
     let image_count = images? images.length : 0;
-    let wallWidth = this.wallOffsetLeft + ((image_count+1)* (this.wallImageWidth+this.wallImageSpacing));
+    let wallWidth = this.wallOffsetLeft + ((image_count)* (this.wallImageWidth+this.wallImageSpacing));
     let wallPanelCount = Math.ceil(wallWidth / this.backgroundWallWidth);
 
     this.makeWall(wallPanelCount, -this.wallOffsetTop);

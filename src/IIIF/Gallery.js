@@ -187,22 +187,33 @@ export default class Gallery extends Viewer {
     });
   }
 
-  create3DFloorObject(wallWidth) {
+  /**
+   * Creates 3D wall given a width with events and caching.
+   *
+   * @param wallWidth
+   * @returns Element
+   */
+  create3DFloor(wallWidth) {
     if (this._3dfloor[wallWidth]) return this._3dfloor[wallWidth];
+
     let floor = document.createElement('div');
     floor.setAttribute('id', 'floor');
     floor.setAttribute('class', 'floor');
 
     let calculatePan = throttle((x) => {
-      Velocity(floor, { transformOriginY: 'top', transformOriginX: ((x) / (wallWidth) *100)+'%' }, {duration: 0});
+      Velocity(floor, { transformOriginY: 'top', transformOriginX: ((x) / (wallWidth) *100)+'%' }, {duration: 8});
     }, (1000/60));
+
     let calculateZoom = throttle((e) => {
-      if (this.viewport.getZoom(true) > 0.0013) {
-        Velocity(floor, { opacity: 0 }, {duration: 0});
-      }
-      else {
-        Velocity(floor, { opacity: 1 }, {duration: 0});
-      }
+      //if (this.viewport.getZoom(true) > 0.0013) {
+      //  Velocity(floor, { opacity: 0 }, {duration: 0});
+      //}
+      //else {
+      //  Velocity(floor, { opacity: 1 }, {duration: 0});
+      //}
+      Velocity(floor, {
+        opacity: this.viewport.getZoom(true) > 0.0013 ? 0 : 1
+      }, {duration: 0});
       calculatePan(this.viewport.getCenter().x);
     }, (1000/60));
 
@@ -212,14 +223,20 @@ export default class Gallery extends Viewer {
     return this._3dfloor[wallWidth] = floor;
   }
 
-  create3DFloor(wallWidth) {
+  /**
+   * Adds 3D floor to canvas given wall width
+   *
+   * @param wallWidth
+   * @param height
+   */
+  add3DFloor(wallWidth, height=250) {
     this.addOverlay({
-      element: this.create3DFloorObject(wallWidth),
+      element: this.create3DFloor(wallWidth),
       location: new OpenSeadragon.Rect(
           0,
-          window.innerHeight-250,
+          window.innerHeight-height,
           wallWidth-80,
-          250
+          height
       )
     });
   }
@@ -236,7 +253,7 @@ export default class Gallery extends Viewer {
 
     this.makeWall(wallPanelCount, -this.wallOffsetTop);
     if (this.show3DFloor) {
-      this.create3DFloor(wallWidth);
+      this.add3DFloor(wallWidth);
     }
   }
 

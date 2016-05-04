@@ -3,10 +3,12 @@ import assert from 'assert';
 
 import Gallery from './IIIF/Gallery';
 import Velocity from 'velocity-animate';
+import { fetch } from './IIIF/Util';
+
 
 let gallery = new Gallery({
   id: "player",
-  collection: 'http://wellcomelibrary.org/service/collections/recently-digitised/24/',
+  //collection: 'http://wellcomelibrary.org/service/collections/recently-digitised/24/',
   visibilityRatio: 1,
   homeFillsViewer: true,
   constrainDuringPan: true,
@@ -19,9 +21,34 @@ let gallery = new Gallery({
 });
 
 
+
+fetch('./collections.json').then((data) => {
+  let chooser = document.getElementById('chooser');
+  console.log(chooser);
+  for (let item of data) {
+    let list_element = document.createElement('li');
+    list_element.innerText = item.label;
+    list_element.setAttribute('data-uri', item.id);
+    list_element.onclick =  function() {
+      gallery.world.removeAll();
+      gallery.recalculateWall([]);
+      Velocity(gallery.element, {blur: 15}, {duration: 200 });
+      gallery.queue.reset();
+      gallery.resolve(this.getAttribute('data-uri'));
+      Velocity(chooser, {
+        top: 30,
+        right: 20,
+        margin: 0
+      }, { 'duration': 300 })
+    };
+    chooser.appendChild(list_element);
+  }
+})
+
+
 //setTimeout(() => {
 //  gallery.resolve('http://wellcomelibrary.org/service/collections/recently-digitised/24/');
-//}, 5000);
+//}, 6000);
 //
 //gallery.addMediaType('video_url', function (payload, key, index) {
 //  let container = document.createElement('div'),

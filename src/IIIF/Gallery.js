@@ -47,6 +47,8 @@ export default class Gallery extends Viewer {
       'html': this.appendWallHtml
     };
 
+    Velocity(this.element, {blur: 15}, {duration: 0 });
+
     // Build a gallery from passed in information.
     if (collection) {
       this.resolve(collection);
@@ -114,13 +116,13 @@ export default class Gallery extends Viewer {
     // This is allows overlays to be re-rendered
     this.queue.beforeFlushStart = () => {
       this.clearOverlays();
-      //Velocity(this.element, {blur: 10}, {duration: 0 });
+      Velocity(this.element, {blur: 15}, {duration: 200 });
       this.overlaysContainer.innerHTML = "";
     };
     // This will auto stretch the wall to fit the content.
     this.queue.onFlushEnd = (images) => {
       this.recalculateWall(images);
-      //Velocity(this.element, {blur: 0}, {duration: 2000 });
+      Velocity(this.element, {blur: 0}, {duration: 800 });
     }
   }
 
@@ -157,11 +159,11 @@ export default class Gallery extends Viewer {
    * @param replace
    * @returns {Promise}
    */
-  appendWallImage({ image }, key, index, replace=false) {
+  appendWallImage({ image }, key, index, replace=true) {
     return this.asyncAddTiledImage({
       tileSource: image,
       width: this.wallImageWidth,
-      replace,
+      replace: true,
       index,
       y: this.wallOffsetTop,
       x: this.wallOffsetLeft + (key*(this.wallImageWidth+this.wallImageSpacing))

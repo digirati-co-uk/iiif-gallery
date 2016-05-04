@@ -9,6 +9,10 @@ export default class ImageQueue {
     }
   }
 
+  reset() {
+    this._images = [];
+  }
+
   sizeOf() {
     return this._images.length;
   }

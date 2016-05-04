@@ -1,5 +1,13 @@
 [
    { 
+      "id": "http://wellcomelibrary.org/service/collections/authors/Thomson,%20J./",
+      "label": "John Thomson"
+   },
+   { 
+      "id": "http://wellcomelibrary.org/service/collections/genres/Woodcuts/",
+      "label": "Woodcuts"
+   },
+   { 
       "id": "http://wellcomelibrary.org/service/collections/recently-digitised/24/",
       "label": "Most recent 24"
    },

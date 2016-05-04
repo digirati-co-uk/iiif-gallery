@@ -14,5 +14,11 @@
    { 
       "id": "http://wellcomelibrary.org/service/collections/lucky-dip/24/",
       "label": "Lucky dip"
+   },
+   { 
+      "id": "http://wellcomelibrary.org/service/collections/genres/Maps/",
+      "label": "Maps"
    }
+   
+   
 ]

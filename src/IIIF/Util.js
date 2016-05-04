@@ -15,13 +15,37 @@ export function fetch(url, json=true) {
   });
 }
 
+/*
+ * memoize.js
+ * by @philogb and @addyosmani
+ * with further optimizations by @mathias
+ * and @DmitryBaranovsk
+ * perf tests: http://bit.ly/q3zpG3
+ * Released under an MIT license.
+ */
+export function memoize( fn ) {
+  return function () {
+    var args = Array.prototype.slice.call(arguments),
+        hash = "",
+        i = args.length;
+    currentArg = null;
+    while (i--) {
+      currentArg = args[i];
+      hash += (currentArg === Object(currentArg)) ?
+          JSON.stringify(currentArg) : currentArg;
+      fn.memoize || (fn.memoize = {});
+    }
+    return (hash in fn.memoize) ? fn.memoize[hash] :
+        fn.memoize[hash] = fn.apply(this, args);
+  };
+}
 
 export function throttle(fn, delay) {
   return function() {
     var now = (new Date).getTime();
     if (!fn.lastExecuted || fn.lastExecuted + delay < now) {
       fn.lastExecuted = now;
-      fn.apply(fn, arguments);
+      window.requestAnimationFrame(() => fn.apply(fn, arguments));
     }
   }
 }

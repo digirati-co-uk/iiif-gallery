@@ -6,17 +6,22 @@ import Velocity from 'velocity-animate';
 
 let gallery = new Gallery({
   id: "player",
-  collection: 'http://wellcomelibrary.org/service/collections/genres/Wet%20collodion%20negatives/',
+  collection: 'http://wellcomelibrary.org/service/collections/recently-digitised/24/',
   visibilityRatio: 1,
   homeFillsViewer: true,
   constrainDuringPan: true,
   animationTime: 0.3,
   minZoomLevel: 0.0007,
-  wallImageWidth: 280,
+  wallImageWidth: 180,
   wallImageSpacing: 100,
   wallOffsetTop: 150,
   show3DFloor: true
 });
+
+
+//setTimeout(() => {
+//  gallery.resolve('http://wellcomelibrary.org/service/collections/recently-digitised/24/');
+//}, 5000);
 //
 //gallery.addMediaType('video_url', function (payload, key, index) {
 //  let container = document.createElement('div'),

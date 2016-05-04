@@ -1,7 +1,7 @@
 import Collection from './Collection';
 import { Viewer } from 'OpenSeadragon';
 import $ from 'OpenSeadragon';
-import { fetch, throttle } from './Util';
+import { fetch, throttle, memoize } from './Util';
 import ImageQueue from './ImageQueue';
 import Velocity from 'velocity-animate';
 
@@ -28,14 +28,18 @@ export default class Gallery extends Viewer {
     this.wallOffsetLeft = opts.wallOffsetLeft || this.wallImageWidth/2;
     this.resolveVideo = opts.resolveVideo || this.resolveVideo;
     this.resolveCollectionImages = opts.resolveCollectionImages || this.resolveCollectionImages;
-    this.backgroundWallImage = opts.backgroundWallImage || 'https://dlcs.io/iiif-img/4/4/f72a98a7_blank_gallery_wall.jpg/info.json';
-    this.backgroundWallWidth = opts.backgroundWallWidth || 1000;
+    this.backgroundWallImage = opts.backgroundWallImage || 'http://dlcs.io/iiif-img/4/4/7ade194e-2bed-4b0d-afd0-939bca603cba/info.json';
+    this.backgroundWallWidth = opts.backgroundWallWidth || 1500;
     this.show3DFloor = opts.show3DFloor || false;
     this._3dfloor = [];
     let collection = opts.collection || null;
+    // Do some caching!
+    this.makeAjaxRequest = memoize(this.makeAjaxRequest).bind(this);
 
     // Creates an image queue, with hooks into OSD specifics.
     this.configureImageQueue();
+
+    //Velocity(this.element, {blur: 10}, {duration: 0 });
 
     // Default media types.
     this.mediaTypes = {
@@ -110,10 +114,14 @@ export default class Gallery extends Viewer {
     // This is allows overlays to be re-rendered
     this.queue.beforeFlushStart = () => {
       this.clearOverlays();
+      //Velocity(this.element, {blur: 10}, {duration: 0 });
       this.overlaysContainer.innerHTML = "";
     };
     // This will auto stretch the wall to fit the content.
-    this.queue.onFlushEnd = this.recalculateWall.bind(this);
+    this.queue.onFlushEnd = (images) => {
+      this.recalculateWall(images);
+      //Velocity(this.element, {blur: 0}, {duration: 2000 });
+    }
   }
 
   /**
@@ -194,7 +202,7 @@ export default class Gallery extends Viewer {
     let calculatePan = throttle((x) => {
       // Calculate the perspective origin to be center of the screen (x) as a pecentage of wall width.
       Velocity(floor, { transformOriginY: 'top', transformOriginX: ((x) / (wallWidth) *100)+'%' }, {duration: 0});
-    }, (1000/60));
+    }, (1000/30));
 
     let calculateZoom = throttle((e) => {
       // Hide and show at further zoom levels (perf).
@@ -203,7 +211,7 @@ export default class Gallery extends Viewer {
       }, {duration: 0});
       // Recalculate width.
       calculatePan(this.viewport.getCenter().x);
-    }, (1000/60));
+    }, (1000/30));
 
     this.addHandler('pan', (e) => calculatePan(e.center.x));
     this.addHandler('viewport-change', (e) => calculatePan(this.viewport.getCenter().x));
@@ -226,13 +234,14 @@ export default class Gallery extends Viewer {
    * @param height
    */
   add3DFloor(wallWidth, height=250) {
+    console.log(this.viewport._containerInnerSize.y-height);
     this.addOverlay({
       element: this.create3DFloor(wallWidth),
       location: new OpenSeadragon.Rect(
           0,
-          window.innerHeight-height,
+          550,
           wallWidth,
-          200
+          280
       )
     });
   }

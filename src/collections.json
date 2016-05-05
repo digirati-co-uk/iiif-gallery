@@ -18,7 +18,9 @@
    { 
       "id": "http://wellcomelibrary.org/service/collections/genres/Maps/",
       "label": "Maps"
+   },
+   { 
+      "id": "http://digirati-co-uk/iiif-gallery/hama/hama.json",
+      "label": "Hama"
    }
-   
-   
 ]

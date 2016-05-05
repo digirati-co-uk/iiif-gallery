@@ -20,7 +20,7 @@
       "label": "Maps"
    },
    { 
-      "id": "http://digirati-co-uk/iiif-gallery/hama/hama.json",
+      "id": "http://digirati-co-uk.github.io/iiif-gallery/hama/hama.json",
       "label": "Hama"
    }
 ]

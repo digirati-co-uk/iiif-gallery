@@ -12,6 +12,7 @@ let gallery = new Gallery({
   visibilityRatio: 1,
   homeFillsViewer: true,
   constrainDuringPan: true,
+  prefixUrl: 'images/',
   animationTime: 0.3,
   minZoomLevel: 0.0007,
   show3DFloor: true,

@@ -223,16 +223,7 @@ export default class Gallery extends Viewer {
       floor.style.transformOrigin = ((x) / (wallWidth) *100)+'% 0%';
       // Calculate the perspective origin to be center of the screen (x) as a pecentage of wall width.
       //Velocity(floor, { transformOriginY: 'top', transformOriginX: ((x) / (wallWidth) *100)+'%' }, {duration: 0});
-    }, (1000/40));
-
-    let calculateZoom = throttle((e) => {
-      // Hide and show at further zoom levels (perf).
-      Velocity(floor, {
-        opacity: this.viewport.getZoom(true) > 0.0013 ? 0 : 1
-      }, {duration: 0});
-      // Recalculate width.
-      calculatePan(this.viewport.centerSpringX.current.value);
-    }, (1000/40));
+    }, (1000/60));
 
     this.addHandler('pan', (e) => calculatePan(e.center.x));
     this.addHandler('viewport-change', (e) => calculatePan(this.viewport.centerSpringX.current.value));
@@ -244,7 +235,7 @@ export default class Gallery extends Viewer {
         calculatePan(this.viewport.centerSpringX.current.value)
       }
     });
-    this.addHandler('zoom', calculateZoom);
+    this.addHandler('zoom', () => calculatePan(this.viewport.centerSpringX.current.value));
     return floor;
   }
 

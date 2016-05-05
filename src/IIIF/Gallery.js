@@ -22,9 +22,9 @@ export default class Gallery extends Viewer {
   constructor(opts) {
     super(opts);
     // Default configuration.
-    this.wallImageWidth = opts.wallImageWidth || 100;
-    this.wallImageSpacing = opts.wallImageSpacing || 15;
-    this.wallOffsetTop = opts.wallOffsetTop || 200;
+    this.wallImageWidth = opts.wallImageWidth || 300;
+    this.wallImageSpacing = opts.wallImageSpacing || 100;
+    this.wallOffsetTop = opts.wallOffsetTop || 120;
     this.wallOffsetLeft = opts.wallOffsetLeft || this.wallImageWidth/2;
     this.resolveVideo = opts.resolveVideo || this.resolveVideo;
     this.resolveCollectionImages = opts.resolveCollectionImages || this.resolveCollectionImages;
@@ -33,8 +33,6 @@ export default class Gallery extends Viewer {
     this.show3DFloor = opts.show3DFloor || false;
     this._3dfloor = [];
     let collection = opts.collection || null;
-    // Do some caching!
-    this.makeAjaxRequest = memoize(this.makeAjaxRequest).bind(this);
 
     // Creates an image queue, with hooks into OSD specifics.
     this.configureImageQueue();
@@ -152,22 +150,43 @@ export default class Gallery extends Viewer {
    * Image media type reducer.
    *
    * Appends image to the wall, spaced correctly.
-   *
-   * @param image
+   * {
+   *    @param image
+   *    @param height
+   *    @param width
+   * }
    * @param key
    * @param index
    * @param replace
    * @returns {Promise}
    */
-  appendWallImage({ image }, key, index, replace=true) {
-    return this.asyncAddTiledImage({
+  appendWallImage({ image, height, width }, key, index, replace=true) {
+    let options = {
       tileSource: image,
       width: this.wallImageWidth,
-      replace: true,
       index,
       y: this.wallOffsetTop,
       x: this.wallOffsetLeft + (key*(this.wallImageWidth+this.wallImageSpacing))
-    });
+    };
+    if (height && width) {
+      let ratio = height/width;
+      let predicted_height = this.wallImageWidth*ratio;
+      if (predicted_height > this.wallImageWidth) {
+        // Adjusted width
+        options.width = this.wallImageWidth*(this.wallImageWidth/predicted_height);
+      }
+      // Recalculate spacing.
+      if(options.width - this.wallImageWidth !== 0) {
+        options.x += (this.wallImageWidth - options.width)/2;
+      }
+      if(predicted_height - this.wallImageWidth < 0) {
+        options.y += (this.wallImageWidth - predicted_height)/2;
+      }
+    }
+
+
+
+    return this.asyncAddTiledImage(options);
   }
 
   /**
@@ -195,16 +214,16 @@ export default class Gallery extends Viewer {
    * @returns Element
    */
   create3DFloor(wallWidth) {
-    if (this._3dfloor[wallWidth]) return this._3dfloor[wallWidth];
 
     let floor = document.createElement('div');
     floor.setAttribute('id', 'floor');
     floor.setAttribute('class', 'floor');
 
     let calculatePan = throttle((x) => {
+      floor.style.transformOrigin = ((x) / (wallWidth) *100)+'% 0%';
       // Calculate the perspective origin to be center of the screen (x) as a pecentage of wall width.
-      Velocity(floor, { transformOriginY: 'top', transformOriginX: ((x) / (wallWidth) *100)+'%' }, {duration: 0});
-    }, (1000/30));
+      //Velocity(floor, { transformOriginY: 'top', transformOriginX: ((x) / (wallWidth) *100)+'%' }, {duration: 0});
+    }, (1000/40));
 
     let calculateZoom = throttle((e) => {
       // Hide and show at further zoom levels (perf).
@@ -212,21 +231,21 @@ export default class Gallery extends Viewer {
         opacity: this.viewport.getZoom(true) > 0.0013 ? 0 : 1
       }, {duration: 0});
       // Recalculate width.
-      calculatePan(this.viewport.getCenter().x);
-    }, (1000/30));
+      calculatePan(this.viewport.centerSpringX.current.value);
+    }, (1000/40));
 
     this.addHandler('pan', (e) => calculatePan(e.center.x));
-    this.addHandler('viewport-change', (e) => calculatePan(this.viewport.getCenter().x));
+    this.addHandler('viewport-change', (e) => calculatePan(this.viewport.centerSpringX.current.value));
     this.addHandler('add-overlay', (e) => {
       if (floor.offsetWidth/floor.offsetHeight > 1) {
         // Set background size ratio.
         Velocity(floor, { backgroundSize: 30/(wallWidth/950)+'%' }, { duration: 0 });
         // Recalculate floor width.
-        calculatePan(this.viewport.getCenter().x)
+        calculatePan(this.viewport.centerSpringX.current.value)
       }
     });
     this.addHandler('zoom', calculateZoom);
-    return this._3dfloor[wallWidth] = floor;
+    return floor;
   }
 
   /**
@@ -236,14 +255,13 @@ export default class Gallery extends Viewer {
    * @param height
    */
   add3DFloor(wallWidth, height=250) {
-    console.log(this.viewport._containerInnerSize.y-height);
     this.addOverlay({
       element: this.create3DFloor(wallWidth),
       location: new OpenSeadragon.Rect(
           0,
-          550,
+          580,
           wallWidth,
-          280
+          300
       )
     });
   }
@@ -284,6 +302,7 @@ export default class Gallery extends Viewer {
   }
 }
 
+
 /**
  * Default resolver for IIIF Collection.
  *
@@ -296,8 +315,19 @@ export function IIIFCollectionResolver(url) {
     return new Collection(d);
   }).then((collection) => {
     // Add images to wall in order.
-    return collection.images.map((image, key) => {
-      return { type: 'image', payload: { image, collection, key }};
-    });
+    return Promise.all(collection.images.map((image, key) => {
+      // Make network request for each image
+      return fetch(image).then((resp) => {
+        // Return the image with extra attributes.
+        return { type: 'image', payload: {
+          image,
+          collection,
+          key,
+          height: resp.height,
+          width: resp.width,
+          source: resp
+        }};
+      })
+    }));
   });
 }

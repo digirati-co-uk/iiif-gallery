@@ -25,16 +25,18 @@ export function fetch(url, json=true) {
  */
 export function memoize( fn ) {
   return function () {
-    var args = Array.prototype.slice.call(arguments),
+    let args = Array.prototype.slice.call(arguments),
         hash = "",
-        i = args.length;
-    currentArg = null;
+        i = args.length,
+        currentArg = null;
+
     while (i--) {
       currentArg = args[i];
       hash += (currentArg === Object(currentArg)) ?
           JSON.stringify(currentArg) : currentArg;
       fn.memoize || (fn.memoize = {});
     }
+
     return (hash in fn.memoize) ? fn.memoize[hash] :
         fn.memoize[hash] = fn.apply(this, args);
   };
@@ -45,10 +47,37 @@ export function throttle(fn, delay) {
     var now = (new Date).getTime();
     if (!fn.lastExecuted || fn.lastExecuted + delay < now) {
       fn.lastExecuted = now;
-      window.requestAnimationFrame(() => fn.apply(fn, arguments));
+      return fn.apply(fn, arguments);
     }
   }
 }
+
+export function debounce(fn, debounceDuration){
+  // summary:
+  //      Returns a debounced function that will make sure the given
+  //      function is not triggered too much.
+  // fn: Function
+  //      Function to debounce.
+  // debounceDuration: Number
+  //      OPTIONAL. The amount of time in milliseconds for which we
+  //      will debounce the function. (defaults to 100ms)
+
+  debounceDuration = debounceDuration || 100;
+
+  return function(){
+    if(!fn.debouncing){
+      var args = Array.prototype.slice.apply(arguments);
+      fn.lastReturnVal = fn.apply(window, args);
+      fn.debouncing = true;
+    }
+    clearTimeout(fn.debounceTimeout);
+    fn.debounceTimeout = setTimeout(function(){
+      fn.debouncing = false;
+    }, debounceDuration);
+
+    return fn.lastReturnVal;
+  };
+};
 
 /**
  * Maps array of objects to base object (_)

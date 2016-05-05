@@ -5,7 +5,7 @@
   <title>IIIF Gallery</title>
 </head>
 <body style="position: relative;padding:0;margin:0">
-  <div id="player" style="position: fixed; top:30px;bottom:0;left:0;right:0;background: #000;opacity: 1;"></div>
+  <div id="player" style="position: fixed; top:30px;bottom:0;left:0;right:0;background: #FFF;opacity: 1;"></div>
   <ul id="chooser"></ul>
 
   <script src="bundle.js"></script>
@@ -42,7 +42,12 @@
     .floor {
       background-image: url('http://allroundnews.com/wp-content/uploads/2012/10/seamless-white-wood-textures.jpg');
       background-repeat: repeat-x;
-      transform: matrix3d(1,0,0.00,0,0.00,0.3,0.94,-0.002,0,-0.94,0.34,0,0,0,0,1);
+      transform: matrix3d(
+             1,     0,  0.00,      0,
+          0.00,   0.3,  0.94, -0.001,
+             0, -0.94,  0.34,      0,
+             0,     0,     0,      1
+      );
       background-size: 30%;
     }
 

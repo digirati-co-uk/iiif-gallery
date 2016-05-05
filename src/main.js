@@ -14,25 +14,22 @@ let gallery = new Gallery({
   constrainDuringPan: true,
   animationTime: 0.3,
   minZoomLevel: 0.0007,
-  wallImageWidth: 180,
-  wallImageSpacing: 100,
-  wallOffsetTop: 150,
-  show3DFloor: true
+  show3DFloor: true,
+  springStiffness: 100
 });
 
 
 
 fetch('./collections.json').then((data) => {
   let chooser = document.getElementById('chooser');
-  console.log(chooser);
   for (let item of data) {
     let list_element = document.createElement('li');
     list_element.innerText = item.label;
     list_element.setAttribute('data-uri', item.id);
     list_element.onclick =  function() {
+      Velocity(gallery.element, {blur: 15}, {duration: 200 });
       gallery.world.removeAll();
       gallery.recalculateWall([]);
-      Velocity(gallery.element, {blur: 15}, {duration: 200 });
       gallery.queue.reset();
       gallery.resolve(this.getAttribute('data-uri'));
       Velocity(chooser, {

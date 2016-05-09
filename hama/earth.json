@@ -1,0 +1,49 @@
+
+{
+  "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/earth.json",
+  "@type": "sc:Manifest",
+  "metadata": [
+    {
+      "label": "Title",
+      "value": "The Earth"
+    }
+  ],
+  "sequences": [
+    {
+      "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/earth-seq",
+      "@type": "sc:Sequence",
+      "label": "Sequence 0",
+      "canvases": [
+        {
+          "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/earth/1",
+          "@type": "sc:Canvas",
+          "height": 2375,
+          "width": 2513,
+          "images": [
+            {
+              "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/earth/1/anno",
+              "@type": "oa:Annotation",
+              "motivation": "sc:painting",
+              "resource": {
+                "@id": "https://dlcs.io/iiif-img/4/15/03294ef4-345f-4b87-b80d-4e77194a1dc8/full/!2000,2000/0/default.jpg",
+                "@type": "dcTypes:Image",
+                "height": 2375,
+                "width": 2513,
+                "service": {
+                  "@id": "https://dlcs.io/iiif-img/4/15/03294ef4-345f-4b87-b80d-4e77194a1dc8",
+                  "protocol": "http://iiif.io/api/image",
+                  "height": 2375,
+                  "width": 2513,
+                  "profile": "http://iiif.io/api/image/2/level1.json"
+                }
+              },
+              "on": "http://digirati-co-uk.github.io/iiif-gallery/hama/earth/1"
+            }
+          ]
+        }        
+      ]
+    }
+  ],
+  "label": "The Earth",
+  "description": "Made from Hama beads"
+}

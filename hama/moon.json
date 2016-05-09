@@ -1,0 +1,49 @@
+
+{
+  "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/moon.json",
+  "@type": "sc:Manifest",
+  "metadata": [
+    {
+      "label": "Title",
+      "value": "The Moon"
+    }
+  ],
+  "sequences": [
+    {
+      "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/moon-seq",
+      "@type": "sc:Sequence",
+      "label": "Sequence 0",
+      "canvases": [
+        {
+          "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/moon/1",
+          "@type": "sc:Canvas",
+          "height": 2264,
+          "width": 2264,
+          "images": [
+            {
+              "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/moon/1/anno",
+              "@type": "oa:Annotation",
+              "motivation": "sc:painting",
+              "resource": {
+                "@id": "https://dlcs.io/iiif-img/4/15/0c381837-6178-4998-9053-e5318983347e/full/!2000,2000/0/default.jpg",
+                "@type": "dcTypes:Image",
+                "height": 2264,
+                "width": 2264,
+                "service": {
+                  "@id": "https://dlcs.io/iiif-img/4/15/0c381837-6178-4998-9053-e5318983347e",
+                  "protocol": "http://iiif.io/api/image",
+                  "height": 2264,
+                  "width": 2264,
+                  "profile": "http://iiif.io/api/image/2/level1.json"
+                }
+              },
+              "on": "http://digirati-co-uk.github.io/iiif-gallery/hama/moon/1"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "label": "The Moon",
+  "description": "Made from Hama beads"
+}

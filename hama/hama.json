@@ -1,0 +1,53 @@
+
+{
+  "@context": "http://iiif.io/api/presentation/2/context.json",
+  "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/hama.json",
+  "@type": "sc:Collection",
+  "label": "Hama Earth and Moon",
+  "manifests": [
+    {
+      "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/earth.json",
+      "@type": "sc:Manifest",
+      "label": "The Earth",
+      "thumbnail": {
+        "@id": "https://dlcs.io/iiif-img/4/15/03294ef4-345f-4b87-b80d-4e77194a1dc8/full/!2000,2000/0/default.jpg",
+        "@type": "dcTypes:Image",
+        "height": 2375,
+        "width": 2513,
+        "service": {
+          "@id": "https://dlcs.io/iiif-img/4/15/03294ef4-345f-4b87-b80d-4e77194a1dc8",
+          "protocol": "http://iiif.io/api/image",
+          "height": 2375,
+          "width": 2513,
+          "profile": "http://iiif.io/api/image/2/level1.json"
+        }
+      },
+      "related": {
+        "@id": "http://www.itsallaboutcolour.co.uk/",
+        "format": "text/html"
+      }
+    },
+    {
+      "@id": "http://digirati-co-uk.github.io/iiif-gallery/hama/moon.json",
+      "@type": "sc:Manifest",
+      "label": "The Moon",
+      "thumbnail": {
+        "@id": "https://dlcs.io/iiif-img/4/15/0c381837-6178-4998-9053-e5318983347e/full/!2000,2000/0/default.jpg",
+        "@type": "dcTypes:Image",
+        "height": 2264,
+        "width": 2264,
+        "service": {
+          "@id": "https://dlcs.io/iiif-img/4/15/0c381837-6178-4998-9053-e5318983347e",
+          "protocol": "http://iiif.io/api/image",
+          "height": 2264,
+          "width": 2264,
+          "profile": "http://iiif.io/api/image/2/level1.json"
+        }
+      },
+      "related": {
+        "@id": "http://www.itsallaboutcolour.co.uk/",
+        "format": "text/html"
+      }
+    }
+  ]
+}

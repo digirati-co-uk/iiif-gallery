@@ -6,20 +6,7 @@ import Velocity from 'velocity-animate';
 import { fetch } from './IIIF/Util';
 
 
-let gallery = new Gallery({
-  id: "player",
-  //collection: 'http://wellcomelibrary.org/service/collections/recently-digitised/24/',
-  visibilityRatio: 1,
-  homeFillsViewer: true,
-  constrainDuringPan: true,
-  prefixUrl: 'images/',
-  animationTime: 0.3,
-  minZoomLevel: 0.0007,
-  show3DFloor: true,
-  springStiffness: 100
-});
-
-
+let gallery = new Gallery({ id: "player" });
 
 fetch('./collections.json').then((data) => {
   let chooser = document.getElementById('chooser');
@@ -28,11 +15,7 @@ fetch('./collections.json').then((data) => {
     list_element.innerText = item.label;
     list_element.setAttribute('data-uri', item.id);
     list_element.onclick =  function() {
-      Velocity(gallery.element, {blur: 15}, {duration: 200 });
-      gallery.world.removeAll();
-      gallery.recalculateWall([]);
-      gallery.queue.reset();
-      gallery.resolve(this.getAttribute('data-uri'));
+      gallery.resetAllTiles(this.getAttribute('data-uri'));
       Velocity(chooser, {
         top: 30,
         right: 20,
@@ -41,7 +24,7 @@ fetch('./collections.json').then((data) => {
     };
     chooser.appendChild(list_element);
   }
-})
+});
 
 
 //setTimeout(() => {

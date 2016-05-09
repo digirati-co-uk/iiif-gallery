@@ -20,10 +20,20 @@ export default class Gallery extends Viewer {
    * @param opts
    */
   constructor(opts) {
+    // Change some default options.
+    opts.visibilityRatio = opts.visibilityRatio ? opts.visibilityRatio : 1;
+    opts.homeFillsViewer = opts.homeFillsViewer ? opts.homeFillsViewer : true;
+    opts.constrainDuringPan = opts.constrainDuringPan ? opts.constrainDuringPan : true;
+    opts.prefixUrl = opts.prefixUrl ? opts.prefixUrl : 'images/';
+    opts.animationTime = opts.animationTime ? opts.animationTime : 0.3;
+    opts.minZoomLevel = opts.minZoomLevel ? opts.minZoomLevel : 0.0007;
+    opts.show3DFloor = opts.show3DFloor ? opts.show3DFloor : true;
+    opts.springStiffness = opts.springStiffness ? opts.springStiffness : 100;
+    // Pass to OSD constructor.
     super(opts);
-    // Default configuration.
+    // Custom configuration.
     this.wallImageWidth = opts.wallImageWidth || 300;
-    this.wallImageSpacing = opts.wallImageSpacing || 100;
+    this.wallImageSpacing = opts.wallImageSpacing || 150;
     this.wallOffsetTop = opts.wallOffsetTop || 120;
     this.wallOffsetLeft = opts.wallOffsetLeft || this.wallImageWidth/2;
     this.resolveVideo = opts.resolveVideo || this.resolveVideo;
@@ -37,24 +47,22 @@ export default class Gallery extends Viewer {
     // Creates an image queue, with hooks into OSD specifics.
     this.configureImageQueue();
 
-    //Velocity(this.element, {blur: 10}, {duration: 0 });
-
     // Default media types.
     this.mediaTypes = {
       'image': this.appendWallImage,
       'html': this.appendWallHtml
     };
 
-    Velocity(this.element, {blur: 15}, {duration: 0 });
+    // Blur before items are on the wall.
+    this.blurGallery();
 
     // Build a gallery from passed in information.
     if (collection) {
       this.resolve(collection);
     }
 
+    // Recalculate wall size.
     this.recalculateWall([]);
-
-
   }
 
   /**
@@ -76,6 +84,7 @@ export default class Gallery extends Viewer {
   /**
    * Renders a
    * @param collection string|Promise
+   * @return Promise
    */
   resolve(collection) {
     // If we have a string, assume the default URL of IIIF collection.
@@ -84,8 +93,8 @@ export default class Gallery extends Viewer {
     }
     // We should now have a promise that will return an array of actions
     // that we can pass to our queue (and flush to display them)
-    collection.then((actions) => {
-      this.push(actions)
+    return collection.then((actions) => {
+      this.push(actions);
     });
   }
 
@@ -114,13 +123,12 @@ export default class Gallery extends Viewer {
     // This is allows overlays to be re-rendered
     this.queue.beforeFlushStart = () => {
       this.clearOverlays();
-      Velocity(this.element, {blur: 15}, {duration: 200 });
+      this.blurGallery();
       this.overlaysContainer.innerHTML = "";
     };
     // This will auto stretch the wall to fit the content.
     this.queue.onFlushEnd = (images) => {
-      this.recalculateWall(images);
-      Velocity(this.element, {blur: 0}, {duration: 800 });
+      this.recalculateWall(images).then(() => this.focusGallery());
     }
   }
 
@@ -135,7 +143,7 @@ export default class Gallery extends Viewer {
    * @returns {*|OpenSeadragon.Viewer}
    */
   appendWallHtml(payload, key, index) {
-    return this.addOverlay({
+    return Promise.resolve(this.addOverlay({
       element: payload.element,
       location: new OpenSeadragon.Rect(
           this.wallOffsetLeft + (key*(this.wallImageWidth+this.wallImageSpacing)),
@@ -143,7 +151,7 @@ export default class Gallery extends Viewer {
           this.wallImageWidth,
           this.wallImageWidth
       )
-    });
+    }));
   }
 
   /**
@@ -183,9 +191,6 @@ export default class Gallery extends Viewer {
         options.y += (this.wallImageWidth - predicted_height)/2;
       }
     }
-
-
-
     return this.asyncAddTiledImage(options);
   }
 
@@ -208,6 +213,34 @@ export default class Gallery extends Viewer {
   }
 
   /**
+   * Clears the canvas of all tiles (optional replacement)
+   * @param replacement
+   */
+  resetAllTiles(replacement) {
+    this.blurGallery();
+    this.world.removeAll();
+    this.recalculateWall([]);
+    this.queue.reset();
+    if (replacement) {
+      this.resolve(replacement);
+    }
+  }
+
+  /**
+   * Blurs gallery.
+   */
+  blurGallery() {
+    Velocity(this.element, {blur: 15}, {duration: 200 });
+  }
+
+  /**
+   * Focuses gallery.
+   */
+  focusGallery() {
+    Velocity(this.element, {blur: 0}, {duration: 800 });
+  }
+
+  /**
    * Creates 3D wall given a width with events and caching.
    *
    * @param wallWidth
@@ -225,6 +258,15 @@ export default class Gallery extends Viewer {
       //Velocity(floor, { transformOriginY: 'top', transformOriginX: ((x) / (wallWidth) *100)+'%' }, {duration: 0});
     }, (1000/60));
 
+    let calculateZoom = throttle((e) => {
+      //// Hide and show at further zoom levels (perf).
+      Velocity(floor, {
+        opacity: this.viewport.getZoom(true) > 0.0013 ? 0 : 1
+      }, {duration: 0});
+      // Recalculate width.
+      calculatePan(this.viewport.centerSpringX.current.value);
+    }, (1000/60));
+
     this.addHandler('pan', (e) => calculatePan(e.center.x));
     this.addHandler('viewport-change', (e) => calculatePan(this.viewport.centerSpringX.current.value));
     this.addHandler('add-overlay', (e) => {
@@ -235,7 +277,7 @@ export default class Gallery extends Viewer {
         calculatePan(this.viewport.centerSpringX.current.value)
       }
     });
-    this.addHandler('zoom', () => calculatePan(this.viewport.centerSpringX.current.value));
+    this.addHandler('zoom', calculateZoom);
     return floor;
   }
 
@@ -245,16 +287,16 @@ export default class Gallery extends Viewer {
    * @param wallWidth
    * @param height
    */
-  add3DFloor(wallWidth, height=250) {
-    this.addOverlay({
+  add3DFloor(wallWidth, height=300) {
+    return Promise.resolve(this.addOverlay({
       element: this.create3DFloor(wallWidth),
       location: new OpenSeadragon.Rect(
           0,
           580,
           wallWidth,
-          300
+          height
       )
-    });
+    }));
   }
 
   /**
@@ -266,11 +308,10 @@ export default class Gallery extends Viewer {
     let image_count = images? images.length : 0;
     let wallWidth = this.wallOffsetLeft + ((image_count)* (this.wallImageWidth+this.wallImageSpacing));
     let wallPanelCount = Math.ceil(wallWidth / this.backgroundWallWidth);
-
-    this.makeWall(wallPanelCount, -this.wallOffsetTop);
-    if (this.show3DFloor) {
-      this.add3DFloor(wallWidth);
-    }
+    return Promise.all([
+      this.makeWall(wallPanelCount, -this.wallOffsetTop),
+      this.show3DFloor ? this.add3DFloor(wallWidth) : () => {}
+    ]);
   }
 
 
@@ -281,15 +322,17 @@ export default class Gallery extends Viewer {
    * @param offset
    */
   makeWall(num, offset = 0) {
+    let promises = [];
     while (num-- > 0) {
-      this.addTiledImage({
+      promises.push(this.asyncAddTiledImage({
         tileSource: this.backgroundWallImage,
         width: this.backgroundWallWidth,
         index: num,
         x: num*this.backgroundWallWidth,
         y: 0
-      });
+      }));
     }
+    return Promise.all(promises);
   }
 }
 
@@ -309,6 +352,7 @@ export function IIIFCollectionResolver(url) {
     return Promise.all(collection.images.map((image, key) => {
       // Make network request for each image
       return fetch(image).then((resp) => {
+        console.log(resp);
         // Return the image with extra attributes.
         return { type: 'image', payload: {
           image,

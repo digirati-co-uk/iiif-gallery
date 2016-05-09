@@ -192,13 +192,13 @@ export default class Gallery extends Viewer {
         options.y += (this.wallImageWidth - predicted_height)/2;
       }
       if (label) {
-        let label_width = 60;
-        let label_height = 40;
+        let label_width = 60*0.75;
+        let label_height = 40*0.75;
         // For position bottom.
         //let label_offset_left = (options.x + (options.width/2)) - (label_width/2);
         //let label_offset_top = options.y+(options.width*ratio)+40;
         // For position left.
-        let label_offset_left = (options.x  - (label_width) - /*spacing*/ 20);
+        let label_offset_left = (options.x  - (label_width) - /*spacing*/ 10);
         let label_offset_top = options.y+(options.width*ratio) - label_height;
 
         this.createLabelElement(label, label_height, label_width).then(($label) => {
@@ -322,7 +322,7 @@ export default class Gallery extends Viewer {
       // Add the image.
       withContext(context, () => {
         backgroundImage.src = './images/label.png';
-        context.drawImage(backgroundImage, width, height);
+        context.drawImage(backgroundImage, width, height, width*10, height*10);
       });
 
       // Fill the text
@@ -333,8 +333,7 @@ export default class Gallery extends Viewer {
         let lines = getCanvasLines(context, label, width*9);
 
         for (let i=0; i < lines.length; i++) {
-          console.log(height, i, lines[i]);
-          context.fillText(lines[i], 100, (i*28)+100);
+          context.fillText(lines[i], width*1.5, (i*28)+(height*2.25));
         }
       });
 

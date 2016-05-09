@@ -352,10 +352,11 @@ export default class Gallery extends Viewer {
       let label_url = $canvas.toDataURL();
       // Create container (will be link)
       let $container = document.createElement('div');
-      $container.className = 'imageContainer';
+      //$container.className = 'imageContainer';
       // Create image
       let $label = document.createElement('img');
       $label.src = label_url;
+      $label.setAttribute('style', 'width:100%;');
       // Add to container
       $container.appendChild($label);
       // Return container.
@@ -429,7 +430,12 @@ export default class Gallery extends Viewer {
 
     let floor = document.createElement('div');
     floor.setAttribute('id', 'floor');
-    floor.setAttribute('class', 'floor');
+    //floor.setAttribute('class', 'floor');
+    let background = 'http://allroundnews.com/wp-content/uploads/2012/10/seamless-white-wood-textures.jpg';
+    floor.setAttribute('style',
+        'background-image:url(' + background + ');' +
+        'background-repeat:repeat-x;' +
+        'transform:matrix3d(1,0,0.00,0,0.00,0.3,0.94,-0.001,0,-0.94,0.34,0,0,0,0,1)');
 
     let calculatePan = throttle((x) => {
       floor.style.transformOrigin = ((x) / (wallWidth) *100)+'% 0%';

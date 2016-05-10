@@ -3,6 +3,7 @@ import { Viewer } from 'OpenSeadragon';
 import $ from 'OpenSeadragon';
 import { fetch, throttle, memoize, getCanvasLines, withContext } from './Util';
 import ImageQueue from './ImageQueue';
+import { LabelElement } from './Label';
 import Velocity from 'velocity-animate';
 
 
@@ -40,6 +41,7 @@ export default class Gallery extends Viewer {
     this.resolveCollectionImages = opts.resolveCollectionImages || this.resolveCollectionImages;
     this.backgroundWallImage = opts.backgroundWallImage || 'http://dlcs.io/iiif-img/4/4/7ade194e-2bed-4b0d-afd0-939bca603cba/info.json';
     this.backgroundWallWidth = opts.backgroundWallWidth || 1500;
+    this.labelLinkEnabled = opts.labelLinkEnabled || true;
     this.show3DFloor = opts.show3DFloor || false;
     this._3dfloor = [];
     let collection = opts.collection || null;
@@ -163,13 +165,14 @@ export default class Gallery extends Viewer {
    *    @param height
    *    @param width
    *    @param label
+   *    @param related
    * }
    * @param key
    * @param index
    * @param replace
    * @returns {Promise}
    */
-  appendWallImage({ image, height, width, label }, key, index, replace=true) {
+  appendWallImage({ image, height, width, label, related }, key, index, replace=true) {
     let options = {
       tileSource: image,
       width: this.wallImageWidth,
@@ -177,6 +180,7 @@ export default class Gallery extends Viewer {
       y: this.wallOffsetTop,
       x: this.wallOffsetLeft + (key*(this.wallImageWidth+this.wallImageSpacing))
     };
+    let resolvables = [];
     if (height && width) {
       let ratio = height/width;
       let predicted_height = this.wallImageWidth*ratio;
@@ -201,40 +205,27 @@ export default class Gallery extends Viewer {
         let label_offset_left = (options.x  - (label_width) - /*spacing*/ 10);
         let label_offset_top = options.y+(options.width*ratio) - label_height;
 
-        this.createLabelElement(label, label_height, label_width).then(($label) => {
-          this.asyncAddOverlay({
-            element: $label,
-            location: new OpenSeadragon.Rect(
-                label_offset_left,
-                label_offset_top,
-                label_width,
-                label_height
-            )
-          });
-        })
-
+        resolvables.push(
+          this.createLabelElement(label, label_height, label_width, related)
+              .then(($label) => {
+                this.asyncAddOverlay({
+                  element: $label,
+                  location: new OpenSeadragon.Rect(
+                    label_offset_left,
+                    label_offset_top,
+                    label_width,
+                    label_height
+                  )
+                });
+          })
+        )
       }
     }
-    return this.asyncAddTiledImage(options);
-  }
+    resolvables.push(
+      this.asyncAddTiledImage(options)
+    );
 
-  /**
-   * Creates image tag asynchronously.
-   *
-   * @param src
-   * @returns {Promise}
-   */
-  asyncCreateImage(src) {
-    return new Promise(function(resolve, err) {
-      try {
-        let image = new Image();
-        image.src = src;
-        image.onload = () => {  resolve(image) };
-      }
-      catch (e) {
-        err(e);
-      }
-    });
+    return Promise.all(resolvables);
   }
 
   /**
@@ -243,126 +234,47 @@ export default class Gallery extends Viewer {
    * @param label
    * @param height
    * @param width
+   * @param related
    * @returns {*|Promise.<T>}
    */
-  createLabelElement(label, height, width) {
-    let $canvas = document.createElement('canvas');
-    $canvas.setAttribute('height', ''+height*12);
-    $canvas.setAttribute('width', ''+width*12);
-    let context = $canvas.getContext("2d");
+  createLabelElement(label, height, width, related) {
+      return LabelElement({
+        label,
+        height,
+        width,
+        imagePath: './images/label.png'
+      }).then((ctx) => {
+        // Export to PNG.
+        let label_url = ctx.toDataURL();
+        let $container;
 
-    // This needs to be a promise so that the browser loads the image source
-    // before its rendered to the canvas.
-    return this.asyncCreateImage('./images/label.png').then((backgroundImage) => {
-
-      // All the shadows.
-      withContext(context, () => {
-        context.rect(width, height, width*10, height*10);
-        context.fillStyle = '';
-        context.shadowColor = '#000';
-        context.shadowBlur = 40;
-        context.globalAlpha = '0.05';
-        context.shadowOffsetX = 0;
-        context.shadowOffsetY = 15;
-        context.fill();
-      });
-      withContext(context, () => {
-        context.rect(width, height, width*10, height*10);
-        context.fillStyle = '';
-        context.shadowColor = '#000';
-        context.shadowBlur = 15;
-        context.globalAlpha = '0.05';
-        context.shadowOffsetX = 0;
-        context.shadowOffsetY = 10;
-        context.fill();
-      });
-      withContext(context, () => {
-        context.rect(width, height, width*10, height*10);
-        context.fillStyle = '';
-        context.shadowColor = '#000';
-        context.shadowBlur = 15;
-        context.globalAlpha = '0.1';
-        context.shadowOffsetX = 0;
-        context.shadowOffsetY = 15;
-        context.fill();
-      });
-      // hightlights.
-      withContext(context, () => {
-        context.rect(width, height, width*10, height*10);
-        context.fillStyle = '';
-        context.shadowColor = '#FFF';
-        context.shadowBlur = 1;
-        context.globalAlpha = '0.7';
-        context.shadowOffsetX = 0;
-        context.shadowOffsetY = -2;
-        context.fill();
-      });
-      withContext(context, () => {
-        context.rect(width, height, width*10, height*10);
-        context.fillStyle = '';
-        context.shadowColor = '#FFF';
-        context.shadowBlur = 4;
-        context.globalAlpha = '0.1';
-        context.shadowOffsetX = 0;
-        context.shadowOffsetY = -5;
-        context.fill();
-      });
-      // Main shadow.
-      withContext(context, () => {
-        context.rect(width, height, width*10, height*10);
-        context.fillStyle = '';
-        context.shadowColor = '#000';
-        context.shadowBlur = 4;
-        context.globalAlpha = '0.2';
-        context.shadowOffsetX = 0;
-        context.shadowOffsetY = 5;
-        context.fill();
-      });
-
-      // Add the image.
-      withContext(context, () => {
-        backgroundImage.src = './images/label.png';
-        context.drawImage(backgroundImage, width, height, width*10, height*10);
-      });
-
-      // Fill the text
-      withContext(context, () => {
-        context.fillStyle = "#333";
-        context.globalAlpha = '0.9';
-        context.font = "bold 20px Helvetica";
-        let lines = getCanvasLines(context, label, width*9);
-
-        for (let i=0; i < lines.length; i++) {
-          context.fillText(lines[i], width*1.5, (i*28)+(height*2.25));
+        if (related && this.labelLinkEnabled) {
+          $container = document.createElement('a');
+          $container.href = related;
+          $container.setAttribute('target', '_blank');
+          $container.onclick = (e) => {
+            if (e.quick) return;
+            var evt = e ? e:window.event;
+            if (evt.stopPropagation)    evt.stopPropagation();
+            //if (evt.preventDefault)    evt.preventDefault();
+            if (evt.cancelBubble !== null) evt.cancelBubble = true;
+            //window.open(related, '_blank', '')
+          };
+          $container.setAttribute('style', 'display: block;')
         }
+        else {
+          $container = document.createElement('div');
+        }
+        //$container.className = 'imageContainer';
+        // Create image
+        let $label = document.createElement('img');
+        $label.src = label_url;
+        $label.setAttribute('style', 'width:100%;');
+        // Add to container
+        $container.appendChild($label);
+        // Return container.
+        return $container;
       });
-
-      // Add texture lighting.
-      withContext(context, () => {
-        let gradient = context.createRadialGradient(width*6,height*6,0,width*6,height*6,height*6);
-        gradient.addColorStop(0, 'rgba(255,255,255,0.9)');
-        gradient.addColorStop(1, 'rgba(255,255,255,0)');
-        context.globalCompositeOperation = 'soft-light';
-        // draw shape
-        context.fillStyle = gradient;
-        context.fillRect(width, height, width*10, height*10);
-      });
-
-      // Export to PNG.
-      let label_url = $canvas.toDataURL();
-      // Create container (will be link)
-      let $container = document.createElement('div');
-      //$container.className = 'imageContainer';
-      // Create image
-      let $label = document.createElement('img');
-      $label.src = label_url;
-      $label.setAttribute('style', 'width:100%;');
-      // Add to container
-      $container.appendChild($label);
-      // Return container.
-      return $container;
-
-    });
   }
 
   /**
@@ -514,6 +426,7 @@ export default class Gallery extends Viewer {
         tileSource: this.backgroundWallImage,
         width: this.backgroundWallWidth,
         index: num,
+        clip: OpenSeadragon.Rect(0, 100, this.backgroundWallWidth, this.backgroundWallWidth),
         x: num*this.backgroundWallWidth,
         y: 0
       }));
@@ -544,6 +457,7 @@ export function IIIFCollectionResolver(url) {
           image,
           collection,
           key,
+          related: manifest.getRelatedItem(),
           label: manifest.label,
           height: resp.height,
           width: resp.width,

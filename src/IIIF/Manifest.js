@@ -7,6 +7,10 @@ import Sequence from './Sequence';
  * sc:Manifest
  */
 export default class Manifest extends IIIFBase {
+  /* These prevent IDE warnings, can be removed. */
+  /** @namespace this.related */
+  /** @namespace this.thumbnail.service */
+  /** @namespace this.thumbnail */
 
   constructor(data) {
     // Run assertions.
@@ -22,7 +26,18 @@ export default class Manifest extends IIIFBase {
    * @returns {string}
    */
   getImageSource() {
-    return this.thumbnail.service['@id'] + '/info.json'
+    if (this.thumbnail && this.thumbnail.service) {
+      return this.thumbnail.service['@id'] + '/info.json'
+    }
+    else {
+      throw "Thumbnail service not found on collection";
+    }
+  }
+
+  getRelatedItem() {
+    if (this.related && this.related['format'] === 'text/html') {
+      return this.related['@id'];
+    }
   }
 
 }

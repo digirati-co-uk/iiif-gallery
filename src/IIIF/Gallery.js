@@ -30,6 +30,7 @@ export default class Gallery extends Viewer {
     opts.minZoomLevel = opts.minZoomLevel ? opts.minZoomLevel : 0.0007;
     opts.show3DFloor = opts.show3DFloor ? opts.show3DFloor : true;
     opts.springStiffness = opts.springStiffness ? opts.springStiffness : 100;
+    opts.crossOriginPolicy = opts.crossOriginPolicy ? opts.crossOriginPolicy : 'Anonymous';
     // Pass to OSD constructor.
     super(opts);
     // Custom configuration.
@@ -41,7 +42,7 @@ export default class Gallery extends Viewer {
     this.resolveCollectionImages = opts.resolveCollectionImages || this.resolveCollectionImages;
     this.backgroundWallImage = opts.backgroundWallImage || 'http://dlcs.io/iiif-img/4/4/7ade194e-2bed-4b0d-afd0-939bca603cba/info.json';
     this.backgroundWallWidth = opts.backgroundWallWidth || 1500;
-    this.labelLinkEnabled = opts.labelLinkEnabled || true;
+    this.labelLinkEnabled = opts.labelLinkEnabled || false;
     this.show3DFloor = opts.show3DFloor || false;
     this._3dfloor = [];
     let collection = opts.collection || null;
@@ -270,6 +271,7 @@ export default class Gallery extends Viewer {
         let $label = document.createElement('img');
         $label.src = label_url;
         $label.setAttribute('style', 'width:100%;');
+        $label.className = 'jnkdjn'
         // Add to container
         $container.appendChild($label);
         // Return container.
@@ -363,7 +365,16 @@ export default class Gallery extends Viewer {
       // Recalculate width.
       calculatePan(this.viewport.centerSpringX.current.value);
     }, (1000/60));
-
+    this.addHandler('pan', (e) => {
+      if (wallWidth < 1000 || e.immediately) return;
+      console.log(e);
+      if (e.center.x+(window.innerWidth/2) > wallWidth) {
+        //e.preventBubble();
+        this.viewport.centerSpringX.resetTo(wallWidth - (window.innerWidth/2));
+        //this.viewport.panTo( OpenSeadragon.Point((wallWidth - (window.innerWidth/2)), e.center.y), true );
+      }
+      console.log(e.center.x+(window.innerWidth/2), wallWidth);
+    });
     this.addHandler('pan', (e) => calculatePan(e.center.x));
     this.addHandler('viewport-change', (e) => calculatePan(this.viewport.centerSpringX.current.value));
     this.addHandler('add-overlay', (e) => {

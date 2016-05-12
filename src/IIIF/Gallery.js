@@ -257,9 +257,8 @@ export default class Gallery extends Viewer {
             if (e.quick) return;
             var evt = e ? e:window.event;
             if (evt.stopPropagation)    evt.stopPropagation();
-            //if (evt.preventDefault)    evt.preventDefault();
+            //noinspection JSValidateTypes
             if (evt.cancelBubble !== null) evt.cancelBubble = true;
-            //window.open(related, '_blank', '')
           };
           $container.setAttribute('style', 'display: block;')
         }
@@ -271,7 +270,6 @@ export default class Gallery extends Viewer {
         let $label = document.createElement('img');
         $label.src = label_url;
         $label.setAttribute('style', 'width:100%;');
-        $label.className = 'jnkdjn'
         // Add to container
         $container.appendChild($label);
         // Return container.
@@ -365,16 +363,15 @@ export default class Gallery extends Viewer {
       // Recalculate width.
       calculatePan(this.viewport.centerSpringX.current.value);
     }, (1000/60));
-    this.addHandler('pan', (e) => {
+
+    let trimWallRight = (e) => {
       if (wallWidth < 1000 || e.immediately) return;
-      console.log(e);
-      if (e.center.x+(window.innerWidth/2) > wallWidth) {
-        //e.preventBubble();
-        this.viewport.centerSpringX.resetTo(wallWidth - (window.innerWidth/2));
-        //this.viewport.panTo( OpenSeadragon.Point((wallWidth - (window.innerWidth/2)), e.center.y), true );
+      let bounds = this.viewport.getBounds();
+      if ((bounds.x + bounds.width) > wallWidth) {
+        this.viewport.centerSpringX.resetTo(wallWidth - (bounds.width/2));
       }
-      console.log(e.center.x+(window.innerWidth/2), wallWidth);
-    });
+    };
+    this.addHandler('viewport-change', trimWallRight);
     this.addHandler('pan', (e) => calculatePan(e.center.x));
     this.addHandler('viewport-change', (e) => calculatePan(this.viewport.centerSpringX.current.value));
     this.addHandler('add-overlay', (e) => {

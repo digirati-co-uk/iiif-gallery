@@ -34,7 +34,7 @@ export function LabelElement({ label, height, width, imagePath }, opts = {}) {
   // Label defaults, potential attributes.
   let padding = opts.padding || 1.5; // times the width.
   let font_size = opts.fontSize || 20;
-  let font_family = opts.fontFamily || 'Helvetica Neue';
+  let font_family = opts.fontFamily || 'Helvetica';
   let line_height = opts.lineHeight || font_size*1.4; // 28
   let text_color = opts.color || '#333';
 

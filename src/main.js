@@ -10,10 +10,10 @@ let gallery = new Gallery({ id: "player" });
 
 fetch('./collections.json').then((data) => {
   let chooser = document.getElementById('chooser');
-  for (let item of data) {
+  for (let item of data.members) {
     let list_element = document.createElement('li');
     list_element.innerText = item.label;
-    list_element.setAttribute('data-uri', item.id);
+    list_element.setAttribute('data-uri', item['@id']);
     list_element.onclick =  function() {
       gallery.resetAllTiles(this.getAttribute('data-uri'));
       Velocity(chooser, {

@@ -21,6 +21,21 @@
             "label": "Maps"
         },
         { 
+            "@id": "http://wellcomelibrary.org/service/collections/genres/Advertising%20cards/",
+            "@type": "sc:Collection",
+            "label": "Advertising cards"
+        },
+        { 
+            "@id": "http://wellcomelibrary.org/collections/browse/genres/Allegorical%20paintings/",
+            "@type": "sc:Collection",
+            "label": "Allegorical  cards"
+        },
+        { 
+            "@id": "http://wellcomelibrary.org/collections/browse/genres/Albumen%20prints/",
+            "@type": "sc:Collection",
+            "label": "Albumen prints"
+        },
+        { 
             "@id": "http://wellcomelibrary.org/service/collections/recently-digitised/24/",
             "@type": "sc:Collection",
             "label": "Most recent 24"

@@ -77,7 +77,6 @@ export function multipleChoiceBehaviour(gallery, doc = './collections.json') {
 export function queryStringBehaviour(gallery, query = 'collection') {
   if (!gallery instanceof Gallery) throw "You must pass an instance of the Gallery as the first option";
   let collection = getQueryString(query);
-  console.log(collection);
   if (collection) {
     resetAllTiles(gallery, collection);
   }
@@ -100,17 +99,17 @@ export function clipBoardBehaviour(gallery, reset = true) {
   if (!gallery instanceof Gallery) throw "You must pass an instance of the Gallery as the first option";
   document.addEventListener('paste', (e) => {
     // Pull out some variables from the event.
-    const { isTrusted, type, clipboardData, preventDefault } = e;
+    const { isTrusted, type, clipboardData } = e;
     if (
         !isTrusted ||
         type !== 'paste' ||
         clipboardData === undefined
     ) {
       // Basic validation on the paste event.
-      return gallery;
+      return;
     }
     // Stop other piece of code using the paste event. My bubbles.
-    preventDefault();
+    e.preventDefault();
     // Grab the clipboard.
     let collection = clipboardData.getData('Text').trim();
     // Validate and reset gallery.
@@ -123,8 +122,7 @@ export function clipBoardBehaviour(gallery, reset = true) {
         // @todo implement appending of collections to collections.
       }
     }
-    // Always return gallery for composition.
-    return gallery;
   });
-
+  // Always return gallery for composition.
+  return gallery;
 }

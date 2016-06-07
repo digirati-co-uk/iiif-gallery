@@ -14,7 +14,7 @@ queryStringBehaviour(gallery);
 clipBoardBehaviour(gallery);
 
 // Alternatively:
-// QueryStringBehaviour(multipleChoiceBehaviour(gallery))
+// clipBoardBehaviour(QueryStringBehaviour(multipleChoiceBehaviour(gallery)))
 
 
 

@@ -1,0 +1,26 @@
+[
+   { 
+      "id": "http://wellcomelibrary.org/service/collections/authors/Thomson,%20J./",
+      "label": "John Thomson"
+   },
+   { 
+      "id": "http://wellcomelibrary.org/service/collections/genres/Woodcuts/",
+      "label": "Woodcuts"
+   },
+   { 
+      "id": "http://wellcomelibrary.org/service/collections/recently-digitised/24/",
+      "label": "Most recent 24"
+   },
+   { 
+      "id": "http://wellcomelibrary.org/service/collections/lucky-dip/24/",
+      "label": "Lucky dip"
+   },
+   { 
+      "id": "http://wellcomelibrary.org/service/collections/genres/Maps/",
+      "label": "Maps"
+   },
+   { 
+      "id": "http://digirati-co-uk.github.io/iiif-gallery/hama/hama.json",
+      "label": "Hama"
+   }
+]

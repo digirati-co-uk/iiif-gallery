@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IIIF Gallery</title>
+</head>
+<body style="position: relative;padding:0;margin:0">
+  <div id="player" style="position: fixed; top:30px;bottom:0;left:0;right:0;background: #FFF;opacity: 1;"></div>
+  <ul id="chooser">
+    <li><strong>Choose gallery</strong></li>
+  </ul>
+
+  <script src="bundle.js"></script>
+  <style type="text/css">
+
+    #chooser {
+      position: fixed;
+      width: 200px;
+      right: 50%;
+      top: 50%;
+      margin-top: -100px;
+      margin-right: -100px;
+      padding: 10px;
+      background: rgba(255,255,255,.9);
+      list-style: none;
+      box-shadow: 20px 0 100px 0 rgba(0,0,0,0.3);
+      max-height: 35px;
+      overflow: hidden;
+      -webkit-transition: max-height .2s;
+    }
+    #chooser:hover {
+      max-height: 400px;
+    }
+    #chooser li {
+      margin: 0;
+      font-family: sans-serif;
+      padding: 10px;
+    }
+    #chooser li:hover {
+      background: #EEE;
+      cursor: pointer;
+    }
+
+    /* Used for styling video element overlays in demo. */
+    .video video{
+      position: absolute;
+      top: 0;
+      width: 100%;
+    }
+  </style>
+</body>
+</html>

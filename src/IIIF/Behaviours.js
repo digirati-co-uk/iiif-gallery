@@ -1,6 +1,8 @@
 import Gallery from './Gallery';
 import Velocity from 'velocity-animate';
-import { fetch, getQueryString, validateIIIFUri } from './Util';
+import { fetch, getQueryString, validateIIIFUri, getUriFromDropTarget } from './Util';
+
+const nullFn = () => {};
 
 // Has to be global;
 var chooser = document.getElementById('chooser');
@@ -125,4 +127,53 @@ export function clipBoardBehaviour(gallery, reset = true) {
   });
   // Always return gallery for composition.
   return gallery;
+}
+
+/**
+ * Drag and drop behaviour.
+ *
+ * Allows URIs from IIIF-Drag-n-Drop spec as detailed here: http://zimeon.github.io/iiif-dragndrop/
+ *
+ * Adapted from: https://github.com/zimeon/iiif-dragndrop/blob/gh-pages/iiif-dragndrop.js#L49-L80
+ *
+ * @param gallery
+ * @param configure
+ */
+export function dragDropBehaviour(gallery, configure = {}) {
+  const {
+      onDragOver = nullFn,
+      onDragLeave = nullFn,
+      onDragEnd = nullFn
+  } = configure;
+  // Grab and cache the outer-most container around the gallery.
+  let galleryDropZone = document.getElementById(gallery.id);
+  // Start some user configurable events.
+  galleryDropZone.addEventListener('dragover', (e) => onDragOver(e, gallery) && e.preventDefault());
+  galleryDropZone.addEventListener('dragend', (e) => onDragEnd(e, gallery) && e.preventDefault());
+  galleryDropZone.addEventListener('dragleave', (e) => onDragLeave(e, gallery));
+  // Implementation of drop event.
+  galleryDropZone.addEventListener('drop', (e) => {
+    // Prevent all the defaults.
+    e.preventDefault();
+    // Grab some data from the event.
+    const { dataTransfer } = e;
+    // Grab the URI from whatever was dragged.
+    let uri = getUriFromDropTarget(dataTransfer);
+    if (uri) {
+      // Parse the URI to get manifest and image.
+      let manifest = getQueryString('manifest', uri);
+      let image = getQueryString('image', uri);
+      let canvas = getQueryString('canvas', uri);
+      // Handle manifests.
+      if (manifest) {
+        // @todo support more draggable manifests.
+        resetAllTiles(gallery, manifest, canvas);
+      }
+      // Handle images.
+      if (image) {
+        // @todo implement behaviour for this.
+        // resetAllTiles(gallery, image);
+      }
+    }
+  });
 }

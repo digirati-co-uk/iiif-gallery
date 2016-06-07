@@ -66,6 +66,7 @@ export default class Gallery extends Viewer {
 
     // Recalculate wall size.
     this.recalculateWall([]);
+
   }
 
   /**

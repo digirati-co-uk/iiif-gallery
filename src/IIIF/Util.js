@@ -126,13 +126,12 @@ export function mapArrayOf(_, props) {
  * Source: http://gomakethings.com/how-to-get-the-value-of-a-querystring-with-native-javascript/
  *
  * @param  {String} field The field to get the value of
- * @param  {String} url   The URL to get the value from (optional)
+ * @param  {String} href   The URL to get the value from (optional)
  * @return {String}       The field value
  */
-export function getQueryString( field, url = null ) {
-  var href = url ? url : window.location.href;
-  var reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );
-  var string = reg.exec(href);
+export function getQueryString( field, href = window.location.href ) {
+  let reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );
+  let string = reg.exec(href);
   return string ? string[1] : null;
 }
 
@@ -146,4 +145,11 @@ export function getQueryString( field, url = null ) {
  */
 export function validateIIIFUri(uri) {
   return !(uri.length<10 || uri.length>1200 || /\s/.test(uri));
+}
+
+export function getUriFromDropTarget(dataTransfer) {
+  if (!dataTransfer) return false;
+  var parser = document.createElement('a');
+  parser.href = dataTransfer.getData("text/uri-list");
+  return (parser.search);
 }

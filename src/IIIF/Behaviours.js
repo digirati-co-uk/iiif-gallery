@@ -62,10 +62,11 @@ export function multipleChoiceBehaviour(gallery, doc = './collections.json') {
  */
 export function queryStringBehaviour(gallery, query = 'collection') {
   let collection = getQueryString(query);
+  console.log(collection);
   if (collection) {
     if (chooser) {
       let item = multipleChoiceCreateListItem(gallery, {
-        id: collection
+        '@id': collection
       });
       chooser.appendChild(multipleChoiceCreateListItem(gallery, item));
       item.onclick();

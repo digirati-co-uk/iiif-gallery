@@ -28,5 +28,6 @@ module.exports = {
       }
     ]
   },
-  debug: true
+  debug: true,
+
 };

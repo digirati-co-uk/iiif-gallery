@@ -311,8 +311,8 @@ export default class Gallery extends Viewer {
   resetAllTiles(replacement) {
     this.blurGallery();
     this.world.removeAll();
-    this.recalculateWall([]);
     this.queue.reset();
+    this.recalculateWall([]);
     if (replacement) {
       this.resolve(replacement);
     }

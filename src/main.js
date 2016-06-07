@@ -6,6 +6,7 @@ import Velocity from 'velocity-animate';
 import { fetch, getQueryString } from './IIIF/Util';
 import { multipleChoiceBehaviour, queryStringBehaviour, clipBoardBehaviour } from './IIIF/Behaviours';
 
+
 let gallery = new Gallery({ id: "player" });
 
 multipleChoiceBehaviour(gallery);

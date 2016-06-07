@@ -77,6 +77,7 @@ export function multipleChoiceBehaviour(gallery, doc = './collections.json') {
 export function queryStringBehaviour(gallery, query = 'collection') {
   if (!gallery instanceof Gallery) throw "You must pass an instance of the Gallery as the first option";
   let collection = getQueryString(query);
+  console.log(collection);
   if (collection) {
     resetAllTiles(gallery, collection);
   }

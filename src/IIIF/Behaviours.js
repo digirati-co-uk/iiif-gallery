@@ -29,7 +29,7 @@ function multipleChoiceHandleClick(gallery) { return function() {
 function multipleChoiceCreateListItem(gallery, item) {
   let list_element = document.createElement('li');
   list_element.innerText = item.label || 'Default collection';
-  list_element.setAttribute('data-uri', item.id);
+  list_element.setAttribute('data-uri', item['@id']);
   list_element.onclick = multipleChoiceHandleClick(gallery);
   return list_element;
 }
@@ -42,7 +42,9 @@ function multipleChoiceCreateListItem(gallery, item) {
  */
 export function multipleChoiceBehaviour(gallery, doc = './collections.json') {
   fetch(doc).then((data) => {
-    for (let item of data) {
+    const { members } = data;
+    // Loop members.
+    for (let item of members) {
       chooser.appendChild(multipleChoiceCreateListItem(gallery, item));
     }
   });

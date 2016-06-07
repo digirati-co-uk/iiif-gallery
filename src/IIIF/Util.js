@@ -134,4 +134,16 @@ export function getQueryString( field, url = null ) {
   var reg = new RegExp( '[?&]' + field + '=([^&#]*)', 'i' );
   var string = reg.exec(href);
   return string ? string[1] : null;
-};
+}
+
+
+/**
+ * Basic validation of IIIF endpoints.
+ *
+ * @todo fit to IIIF spec.
+ * @param uri
+ * @returns {boolean}
+ */
+export function validateIIIFUri(uri) {
+  return !(uri.length<10 || uri.length>1200 || /\s/.test(uri));
+}

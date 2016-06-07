@@ -4,12 +4,13 @@ import assert from 'assert';
 import Gallery from './IIIF/Gallery';
 import Velocity from 'velocity-animate';
 import { fetch, getQueryString } from './IIIF/Util';
-import { multipleChoiceBehaviour, queryStringBehaviour } from './IIIF/Behaviours';
+import { multipleChoiceBehaviour, queryStringBehaviour, clipBoardBehaviour } from './IIIF/Behaviours';
 
 let gallery = new Gallery({ id: "player" });
 
 multipleChoiceBehaviour(gallery);
 queryStringBehaviour(gallery);
+clipBoardBehaviour(gallery);
 
 // Alternatively:
 // QueryStringBehaviour(multipleChoiceBehaviour(gallery))

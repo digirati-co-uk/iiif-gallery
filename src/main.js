@@ -1,7 +1,7 @@
 import OpenSeadragon from 'OpenSeadragon';
 import assert from 'assert';
 
-import Gallery from './IIIF/Gallery';
+import Gallery, { createImageAction } from './IIIF/Gallery';
 import Velocity from 'velocity-animate';
 import { fetch, getQueryString } from './IIIF/Util';
 import { multipleChoiceBehaviour, queryStringBehaviour, clipBoardBehaviour, dragDropBehaviour } from './IIIF/Behaviours';
@@ -13,6 +13,7 @@ multipleChoiceBehaviour(gallery);
 queryStringBehaviour(gallery);
 clipBoardBehaviour(gallery);
 dragDropBehaviour(gallery);
+
 // Alternatively:
 // clipBoardBehaviour(QueryStringBehaviour(multipleChoiceBehaviour(gallery)))
 

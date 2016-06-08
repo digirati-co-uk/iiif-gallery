@@ -42,6 +42,12 @@ export function memoize( fn ) {
   };
 }
 
+/**
+ * Throttle.
+ * @param fn
+ * @param delay
+ * @returns {Function}
+ */
 export function throttle(fn, delay) {
   return function() {
     var now = (new Date).getTime();
@@ -52,6 +58,12 @@ export function throttle(fn, delay) {
   }
 }
 
+/**
+ * Debounce.
+ * @param fn
+ * @param debounceDuration
+ * @returns {Function}
+ */
 export function debounce(fn, debounceDuration){
   // summary:
   //      Returns a debounced function that will make sure the given
@@ -79,12 +91,24 @@ export function debounce(fn, debounceDuration){
   };
 }
 
+/**
+ * Sandbox for using canvas context safely.
+ * @param context
+ * @param fn
+ */
 export function withContext(context, fn) {
   context.save();
   fn(context);
   context.restore();
 }
 
+/**
+ * Takes text and width and returns array of paragraph lines.
+ * @param ctx
+ * @param text
+ * @param maxWidth
+ * @returns {Array}
+ */
 export function getCanvasLines(ctx, text, maxWidth) {
   var words = text.split(" ");
   var lines = [];
@@ -147,9 +171,70 @@ export function validateIIIFUri(uri) {
   return !(uri.length<10 || uri.length>1200 || /\s/.test(uri));
 }
 
+/**
+ * Returns URI from drop event.
+ * @param dataTransfer
+ * @returns {*}
+ */
 export function getUriFromDropTarget(dataTransfer) {
   if (!dataTransfer) return false;
   var parser = document.createElement('a');
   parser.href = dataTransfer.getData("text/uri-list");
   return (parser.search);
+}
+
+/**
+ * Takes first X values of generator.
+ * Adapted from: http://stackoverflow.com/a/30410454
+ *
+ * @param generator
+ * @param n
+ * @param allow_fewer
+ * @returns {Array}
+ */
+export function take(generator, n, allow_fewer = true) {
+  if (n <= 0) throw new Error("Invalid index");
+
+  let i = 1;
+  let result = [];
+
+  for (let value of generator) {
+    result.push(value);
+    if (i++ == n) {
+      return result;
+    }
+  }
+
+  if (allow_fewer) {
+    return result;
+  }
+
+  throw new Error("Generator has fewer than " + n + " elements");
+}
+
+/**
+ * @type {number}
+ */
+var id_counter = 0;
+
+/**
+ * Simple counter for a unique number.
+ * @returns {number}
+ */
+export function uid() {
+  return ++id_counter
+}
+
+/**
+ * Simple generator for a unique number.
+ *
+ * Can be used with `pick` above:
+ *    pick(gen_uid, 3)
+ *
+ * returns 3 unique numbers.
+ */
+export function *gen_uid() {
+  while (true) {
+    yield ++id_counter;
+  }
 }

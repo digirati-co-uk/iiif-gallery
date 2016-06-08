@@ -118,6 +118,7 @@ export default class Gallery extends Viewer {
    */
   configureImageQueue() {
     this.queue = new ImageQueue((meta, k) => {
+      if (!meta) return;
       if (this.mediaTypes[meta.type]) {
         this.mediaTypes[meta.type].apply(this, [ meta.payload, k, k+100 ])
       }
@@ -422,7 +423,6 @@ export default class Gallery extends Viewer {
     ]);
   }
 
-
   /**
    * Creates segment X of the wall.
    *
@@ -443,5 +443,20 @@ export default class Gallery extends Viewer {
     }
     return Promise.all(promises);
   }
+}
+
+export function createImageAction(image, height, width, key=null, collection=null, related=null, label=null, source=null) {
+  return {
+    type: 'image', payload: {
+      image,
+      collection,
+      key,
+      related,
+      label,
+      height,
+      width,
+      source
+    }
+  };
 }
 

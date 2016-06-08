@@ -22,6 +22,18 @@ export default class Manifest extends IIIFBase {
   }
 
   /**
+   * Generator returns all images in tree node as iterable.
+   * @param defaults
+   */
+  *getAllImages(defaults = {}) {
+    for (let sequence of this.sequences) {
+      yield *sequence.getImages(Object.assign({}, defaults, {
+        label: this.label
+      }));
+    }
+  }
+
+  /**
    * Returns link to sc:Sequence
    * @returns {string}
    */

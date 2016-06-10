@@ -342,7 +342,13 @@ export default class Gallery extends Viewer {
    * @returns Element
    */
   create3DFloor(wallWidth) {
-
+    let floorWrapper = document.createElement('div');
+    floorWrapper.setAttribute('style',
+        '-webkit-transform: translate3d(0, 0, 0);' +
+        '-moz-transform: translate3d(0, 0, 0);' +
+        '-ms-transform: translate3d(0, 0, 0);' +
+        'transform: translate3d(0, 0, 0);'
+    );
     let floor = document.createElement('div');
     floor.setAttribute('id', 'floor');
     //floor.setAttribute('class', 'floor');
@@ -350,6 +356,8 @@ export default class Gallery extends Viewer {
     floor.setAttribute('style',
         'background-image:url(' + background + ');' +
         'background-repeat:repeat-x;' +
+        'width: 100%;' +
+        'height: 100%;' +
         'transform:matrix3d(1,0,0.00,0,0.00,0.3,0.94,-0.001,0,-0.94,0.34,0,0,0,0,1)');
 
     let calculatePan = throttle((x) => {
@@ -386,7 +394,8 @@ export default class Gallery extends Viewer {
       }
     });
     this.addHandler('zoom', calculateZoom);
-    return floor;
+    floorWrapper.appendChild(floor);
+    return floorWrapper;
   }
 
   /**

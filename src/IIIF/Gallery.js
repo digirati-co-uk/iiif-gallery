@@ -5,6 +5,7 @@ import { fetch, throttle, memoize, getCanvasLines, withContext } from './Util';
 import ImageQueue from './ImageQueue';
 import { LabelElement } from './Label';
 import Velocity from 'velocity-animate';
+import { IIIFCollectionResolver } from './Resolver'
 
 
 /**
@@ -117,6 +118,7 @@ export default class Gallery extends Viewer {
    */
   configureImageQueue() {
     this.queue = new ImageQueue((meta, k) => {
+      if (!meta) return;
       if (this.mediaTypes[meta.type]) {
         this.mediaTypes[meta.type].apply(this, [ meta.payload, k, k+100 ])
       }
@@ -340,7 +342,13 @@ export default class Gallery extends Viewer {
    * @returns Element
    */
   create3DFloor(wallWidth) {
-
+    let floorWrapper = document.createElement('div');
+    floorWrapper.setAttribute('style',
+        '-webkit-transform: translate3d(0, 0, 0);' +
+        '-moz-transform: translate3d(0, 0, 0);' +
+        '-ms-transform: translate3d(0, 0, 0);' +
+        'transform: translate3d(0, 0, 0);'
+    );
     let floor = document.createElement('div');
     floor.setAttribute('id', 'floor');
     //floor.setAttribute('class', 'floor');
@@ -348,6 +356,8 @@ export default class Gallery extends Viewer {
     floor.setAttribute('style',
         'background-image:url(' + background + ');' +
         'background-repeat:repeat-x;' +
+        'width: 100%;' +
+        'height: 100%;' +
         'transform:matrix3d(1,0,0.00,0,0.00,0.3,0.94,-0.001,0,-0.94,0.34,0,0,0,0,1)');
 
     let calculatePan = throttle((x) => {
@@ -384,7 +394,8 @@ export default class Gallery extends Viewer {
       }
     });
     this.addHandler('zoom', calculateZoom);
-    return floor;
+    floorWrapper.appendChild(floor);
+    return floorWrapper;
   }
 
   /**
@@ -421,7 +432,6 @@ export default class Gallery extends Viewer {
     ]);
   }
 
-
   /**
    * Creates segment X of the wall.
    *
@@ -444,35 +454,18 @@ export default class Gallery extends Viewer {
   }
 }
 
-
-/**
- * Default resolver for IIIF Collection.
- *
- * @param url
- * @returns {Promise.<T>}
- */
-export function IIIFCollectionResolver(url) {
-  return fetch(url).then((d) => {
-    // Map to collection.
-    return new Collection(d);
-  }).then((collection) => {
-    // Add images to wall in order.
-    return Promise.all(collection.manifests.map((manifest, key) => {
-      let image = manifest.getImageSource();
-      // Make network request for each image
-      return fetch(image).then((resp) => {
-        // Return the image with extra attributes.
-        return { type: 'image', payload: {
-          image,
-          collection,
-          key,
-          related: manifest.getRelatedItem(),
-          label: manifest.label,
-          height: resp.height,
-          width: resp.width,
-          source: resp
-        }};
-      })
-    }));
-  });
+export function createImageAction(image, height, width, key=null, collection=null, related=null, label=null, source=null) {
+  return {
+    type: 'image', payload: {
+      image,
+      collection,
+      key,
+      related,
+      label,
+      height,
+      width,
+      source
+    }
+  };
 }
+

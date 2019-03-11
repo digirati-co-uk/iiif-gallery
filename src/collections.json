@@ -6,37 +6,37 @@
     "viewingHint": "top",
     "members": [
         { 
-            "@id": "http://wellcomelibrary.org/service/collections/authors/Thomson,%20J./",
+            "@id": "https://wellcomelibrary.org/service/collections/authors/Thomson%2C%20J./",
             "@type": "sc:Collection",
             "label": "John Thomson"
         },
         { 
-            "@id": "http://wellcomelibrary.org/service/collections/genres/Woodcuts/",
+            "@id": "https://wellcomelibrary.org/service/collections/genres/Woodcuts/",
             "@type": "sc:Collection",
             "label": "Woodcuts"
         },
         { 
-            "@id": "http://wellcomelibrary.org/service/collections/genres/Maps/",
+            "@id": "https://wellcomelibrary.org/service/collections/genres/Maps/",
             "@type": "sc:Collection",
             "label": "Maps"
         },
         { 
-            "@id": "http://wellcomelibrary.org/service/collections/genres/Allegorical%20paintings/",
+            "@id": "https://wellcomelibrary.org/service/collections/genres/Allegorical%20paintings/",
             "@type": "sc:Collection",
             "label": "Allegorical  cards"
         },
         { 
-            "@id": "http://wellcomelibrary.org/service/collections/genres/Albumen%20prints/",
+            "@id": "https://wellcomelibrary.org/service/collections/genres/Albumen%20prints/",
             "@type": "sc:Collection",
             "label": "Albumen prints"
         },
         { 
-            "@id": "http://wellcomelibrary.org/service/collections/recently-digitised/24/",
+            "@id": "https://wellcomelibrary.org/service/collections/recently-digitised/24/",
             "@type": "sc:Collection",
             "label": "Most recent 24"
         },
         { 
-            "@id": "http://wellcomelibrary.org/service/collections/genres/Advertising%20cards/",
+            "@id": "https://wellcomelibrary.org/service/collections/genres/Advertising%20cards/",
             "@type": "sc:Collection",
             "label": "Advertising cards"
         }
